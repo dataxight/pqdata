@@ -1,0 +1,1255 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Parquet-based serialisation &#8212; pqdata  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/pqdata-serialization-intro';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API" href="../api.html" />
+    <link rel="prev" title="Parquet-based serialisation for AnnData/MuData" href="getting-started-anndata-mudata-parquet-serialization.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pqdata  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getting-started-anndata-mudata-parquet-serialization.html">Parquet-based serialisation for AnnData/MuData</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Parquet-based serialisation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/examples/pqdata-serialization-intro.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Parquet-based serialisation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Writing">Writing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#File-size">File size</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#.pqdata-structure"><em>.pqdata</em> structure</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Parquet-files">Parquet files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#JSON-files">JSON files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Reading">Reading</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+os.chdir(&quot;../../&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+import json
+import pyarrow.parquet as pq
+</pre></div>
+</div>
+</div>
+<section id="Parquet-based-serialisation">
+<h1>Parquet-based serialisation<a class="headerlink" href="#Parquet-based-serialisation" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">anndata</span></code> library implements multiple ways to serialise the data including the default <a class="reference external" href="https://anndata.readthedocs.io/en/latest/generated/anndata.AnnData.write.html#anndata.AnnData.write">HDF5-based H5AD files</a> as well as <a class="reference external" href="https://anndata.readthedocs.io/en/latest/generated/anndata.AnnData.write_zarr.html#anndata.AnnData.write_zarr">Zarr files</a>.</p>
+<p>Same interfaces are available in the <code class="docutils literal notranslate"><span class="pre">mudata</span></code> library — for <a class="reference external" href="https://mudata.readthedocs.io/en/latest/io/output.html#id1">H5MU files</a> and <a class="reference external" href="https://mudata.readthedocs.io/en/latest/io/output.html#zarr-files">Zarr files</a>.</p>
+<p>While largely following the same format specification (<a class="reference external" href="https://anndata.readthedocs.io/en/latest/fileformat-prose.html">AnnData</a>, <a class="reference external" href="https://mudata.readthedocs.io/en/latest/io/spec.html">MuData</a>), different serialisation formats can provide benefits in various applications and scenarios.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pqdata</span></code> implements a similar serialisation strategy that is quite natural as well as can be benefitial for memory and space efficiency and integration with certain analytical tools. It is based on <code class="docutils literal notranslate"><span class="pre">`parquet</span></code> files &lt;<a class="reference external" href="https://parquet.apache.org/">https://parquet.apache.org/</a>&gt;`__, and hence this format is termed here as <em>pqdata files</em>.</p>
+<p>For a sneak peek into the usage and the benefits of Parquest files for analytics, you might check the following references:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.robinlinacre.com/parquet_api/">Why parquet files are my preferred API for bulk open data</a> (January 2023)</p></li>
+<li><p><a class="reference external" href="https://clickhouse.com/blog/extracting-converting-querying-local-files-with-sql-clickhouse-local">Extracting, converting, and querying data in local files using clickhouse-local</a> (January 2023)</p></li>
+<li><p><a class="reference external" href="https://www.datawill.io/posts/apache-arrow-2022-reflection/">Reflecting on Apache Arrow in 2022</a> (December 2022)</p></li>
+<li><p><a class="reference external" href="https://tech.gerardbentley.com/python/data/intermediate/2022/04/26/holy-duck.html">Holy Duck! Fast Analysis with DuckDB + Pyarrow</a> (April 2022)</p></li>
+<li><p><a class="reference external" href="https://www.cloudnatively.com/query-parquet-on-minio/">SQL Query on MinIO</a> (February 2022)</p></li>
+<li><p><a class="reference external" href="https://www.cloudnatively.com/query-parquet-files-with-datafusion/">SQL Query on Parquet Files with DataFusion</a> (January 2022)</p></li>
+<li><p><a class="reference external" href="https://arrow.apache.org/blog/2021/12/03/arrow-duckdb/">DuckDB quacks Arrow: A zero-copy data integration between Apache Arrow and DuckDB</a> (December 2021)</p></li>
+<li><p><a class="reference external" href="https://duckdb.org/2021/06/25/querying-parquet.html">Querying Parquet with Precision using DuckDB</a> (June 2021)</p></li>
+</ul>
+<p>Import writers:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pqdata.io.write import write_anndata, write_mudata
+</pre></div>
+</div>
+</div>
+<p>… and readers:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pqdata.io.read import read_anndata, read_mudata
+</pre></div>
+</div>
+</div>
+<p>First, let’s download a multimodal dataset in the H5MU format:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># import mudatasets
+data = Path(&quot;data/&quot;)
+
+import os
+os.mkdir(data / &quot;pbmc5k_citeseq&quot;)
+# mdata = mudatasets.load(&quot;pbmc5k_citeseq&quot;, files=[&quot;minipbcite.h5mu&quot;], data_dir=data, backed=False)
+# mdata
+import mudata
+mdata = mudata.read(&quot;../../data/pbmc5k_citeseq/minipbcite.h5mu&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/danila/git/scv/mudata/src/mudata/_core/mudata.py:1454: FutureWarning: From 0.4 .update() will not pull obs/var columns from individual modalities by default anymore. Set mudate.set_options(pull_on_update=False) to adopt the new behaviour, which will become the default. Use new pull_obs/pull_var and push_obs/push_var methods for more flexibility.
+  self._update_attr(&#34;var&#34;, axis=0, join_common=join_common)
+/Users/danila/git/scv/mudata/src/mudata/_core/mudata.py:1352: FutureWarning: From 0.4 .update() will not pull obs/var columns from individual modalities by default anymore. Set mudate.set_options(pull_on_update=False) to adopt the new behaviour, which will become the default. Use new pull_obs/pull_var and push_obs/push_var methods for more flexibility.
+  self._update_attr(&#34;obs&#34;, axis=1, join_common=join_common)
+</pre></div></div>
+</div>
+<section id="Writing">
+<h2>Writing<a class="headerlink" href="#Writing" title="Link to this heading">#</a></h2>
+<p>Write the MuData object:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>file = data / &quot;pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata&quot;
+write_mudata(mdata, file)
+</pre></div>
+</div>
+</div>
+<p>Notice that the data is not overwritten by default by this writer:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    # need to provide overwrite=True to overwrite
+    write_mudata(mdata, file)
+except FileExistsError as e:
+    print(e)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[Errno 17] File exists: &#39;data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata&#39;
+</pre></div></div>
+</div>
+<section id="File-size">
+<h3>File size<a class="headerlink" href="#File-size" title="Link to this heading">#</a></h3>
+<p>We can also notice smaller file size:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! du -sh data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+9.0M    data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! du -sh ../../data/pbmc5k_citeseq/minipbcite.h5mu
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ 16M    ../../data/pbmc5k_citeseq/minipbcite.h5mu
+</pre></div></div>
+</div>
+<p>On larger datasets, the difference will be more noticeable. Moreoever, <a class="reference external" href="https://arrow.apache.org/docs/python/parquet.html#compression-encoding-and-file-compatibility">other compression strategies</a> can be used to get even smaller files:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>file = data / &quot;pbmc5k_citeseq/pbmc5k_citeseq_mudata_zstd.pqdata&quot;
+write_mudata(mdata, file, compression=&quot;zstd&quot;)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id=".pqdata-structure">
+<h2><em>.pqdata</em> structure<a class="headerlink" href="#.pqdata-structure" title="Link to this heading">#</a></h2>
+<p>We can see how the dataset is stored on disc:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! tree data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-cyan-intense-fg ansi-bold">data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata</span>
+├── <span class="ansi-cyan-intense-fg ansi-bold">mod</span>
+│   ├── <span class="ansi-cyan-intense-fg ansi-bold">prot</span>
+│   │   ├── X.parquet
+│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">layers</span>
+│   │   │   └── counts.parquet
+│   │   ├── obs.parquet
+│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
+│   │   │   ├── X_pca.parquet
+│   │   │   └── X_umap.parquet
+│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
+│   │   │   ├── connectivities.parquet
+│   │   │   └── distances.parquet
+│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">uns</span>
+│   │   │   └── <span class="ansi-cyan-intense-fg ansi-bold">pca</span>
+│   │   │       ├── variance.parquet
+│   │   │       └── variance_ratio.parquet
+│   │   ├── uns.json
+│   │   ├── var.parquet
+│   │   └── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
+│   │       └── PCs.parquet
+│   └── <span class="ansi-cyan-intense-fg ansi-bold">rna</span>
+│       ├── X.parquet
+│       ├── obs.parquet
+│       ├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
+│       │   ├── X_pca.parquet
+│       │   └── X_umap.parquet
+│       ├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
+│       │   ├── connectivities.parquet
+│       │   └── distances.parquet
+│       ├── <span class="ansi-cyan-intense-fg ansi-bold">uns</span>
+│       │   ├── celltype_colors.parquet
+│       │   ├── leiden_colors.parquet
+│       │   ├── <span class="ansi-cyan-intense-fg ansi-bold">pca</span>
+│       │   │   ├── variance.parquet
+│       │   │   └── variance_ratio.parquet
+│       │   └── <span class="ansi-cyan-intense-fg ansi-bold">rank_genes_groups</span>
+│       │       ├── logfoldchanges.parquet
+│       │       ├── names.parquet
+│       │       ├── pvals.parquet
+│       │       ├── pvals_adj.parquet
+│       │       └── scores.parquet
+│       ├── uns.json
+│       ├── var.parquet
+│       └── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
+│           └── PCs.parquet
+├── obs.parquet
+├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
+│   ├── X_mofa.parquet
+│   ├── X_mofa_umap.parquet
+│   ├── X_umap.parquet
+│   └── X_wnn_umap.parquet
+├── <span class="ansi-cyan-intense-fg ansi-bold">obsmap</span>
+│   ├── prot.parquet
+│   └── rna.parquet
+├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
+│   ├── connectivities.parquet
+│   ├── distances.parquet
+│   ├── wnn_connectivities.parquet
+│   └── wnn_distances.parquet
+├── pqdata.json
+├── var.parquet
+├── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
+│   └── LFs.parquet
+└── <span class="ansi-cyan-intense-fg ansi-bold">varmap</span>
+    ├── prot.parquet
+    └── rna.parquet
+
+21 directories, 46 files
+</pre></div></div>
+</div>
+<section id="Parquet-files">
+<h3>Parquet files<a class="headerlink" href="#Parquet-files" title="Link to this heading">#</a></h3>
+<p>High-dimensional objects that were NumPy arrays or pandas DataFrames in memory are now stored in individual Parquet files.</p>
+<p>Moreover, serialising these objects largely relies on <code class="docutils literal notranslate"><span class="pre">pyarrow</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obs.parquet&quot;).to_pandas().head()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>rna:n_genes_by_counts</th>
+      <th>rna:total_counts</th>
+      <th>rna:total_counts_mt</th>
+      <th>rna:pct_counts_mt</th>
+      <th>rna:leiden</th>
+      <th>rna:celltype</th>
+      <th>louvain</th>
+      <th>leiden</th>
+      <th>leiden_wnn</th>
+      <th>celltype</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>CAGCCAGGTCTCGACG-1</th>
+      <td>1567</td>
+      <td>5572.0</td>
+      <td>259.0</td>
+      <td>4.648241</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+    </tr>
+    <tr>
+      <th>TTCTTCCTCTCGGTAA-1</th>
+      <td>2008</td>
+      <td>7808.0</td>
+      <td>493.0</td>
+      <td>6.314037</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+    </tr>
+    <tr>
+      <th>CGGGTCAAGAGAGGTA-1</th>
+      <td>1749</td>
+      <td>7388.0</td>
+      <td>605.0</td>
+      <td>8.188954</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>CD4+ naïve T</td>
+    </tr>
+    <tr>
+      <th>TACCCGTCATAATCCG-1</th>
+      <td>1496</td>
+      <td>4683.0</td>
+      <td>274.0</td>
+      <td>5.850950</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>CD4+ naïve T</td>
+    </tr>
+    <tr>
+      <th>TGGGTTAGTGAATTAG-1</th>
+      <td>1544</td>
+      <td>6479.0</td>
+      <td>376.0</td>
+      <td>5.803365</td>
+      <td>0</td>
+      <td>CD4+ naïve T</td>
+      <td>2</td>
+      <td>2</td>
+      <td>1</td>
+      <td>CD4+ naïve T</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Embeddings, e.g. UMAP:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obsm/X_umap.parquet&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+pyarrow.Table
+1: float
+2: float
+----
+1: [[9.66083,10.850063,12.345492,12.538155,12.528112,...,-1.9723414,-1.5232953,-1.7778809,-1.7384567,-1.5827981]]
+2: [[5.779709,6.7745605,5.6794906,6.2592025,4.833545,...,-2.152379,-2.1579309,-2.3050048,-2.199118,-2.308012]]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obsm/X_umap.parquet&quot;).to_pandas().to_numpy()[:10]
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([[ 9.66083  ,  5.779709 ],
+       [10.850063 ,  6.7745605],
+       [12.345492 ,  5.6794906],
+       [12.538155 ,  6.2592025],
+       [12.528112 ,  4.833545 ],
+       [13.152369 ,  5.566309 ],
+       [ 9.910739 ,  9.146889 ],
+       [ 8.418465 ,  5.2574263],
+       [12.064896 ,  5.3718014],
+       [11.305964 , -7.5169115]], dtype=float32)
+</pre></div></div>
+</div>
+<p>Dense count matrix with normalised values, which contains protein names (<code class="docutils literal notranslate"><span class="pre">.mod['prot'].var_names</span></code>) as column names:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;mod/prot/X.parquet&quot;).to_pandas().tail()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CD3_TotalSeqB</th>
+      <th>CD4_TotalSeqB</th>
+      <th>CD8a_TotalSeqB</th>
+      <th>CD11b_TotalSeqB</th>
+      <th>CD14_TotalSeqB</th>
+      <th>CD15_TotalSeqB</th>
+      <th>CD16_TotalSeqB</th>
+      <th>CD19_TotalSeqB</th>
+      <th>CD20_TotalSeqB</th>
+      <th>CD25_TotalSeqB</th>
+      <th>...</th>
+      <th>CD86_TotalSeqB</th>
+      <th>CD127_TotalSeqB</th>
+      <th>CD137_TotalSeqB</th>
+      <th>CD197_TotalSeqB</th>
+      <th>CD274_TotalSeqB</th>
+      <th>CD278_TotalSeqB</th>
+      <th>CD335_TotalSeqB</th>
+      <th>PD-1_TotalSeqB</th>
+      <th>HLA-DR_TotalSeqB</th>
+      <th>TIGIT_TotalSeqB</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>406</th>
+      <td>-1.075961</td>
+      <td>1.245624</td>
+      <td>0.258909</td>
+      <td>2.032457</td>
+      <td>0.591571</td>
+      <td>1.429440</td>
+      <td>0.137301</td>
+      <td>2.361204</td>
+      <td>1.693235</td>
+      <td>1.284448</td>
+      <td>...</td>
+      <td>4.252487</td>
+      <td>0.327570</td>
+      <td>1.309700</td>
+      <td>0.107906</td>
+      <td>0.710895</td>
+      <td>0.206146</td>
+      <td>2.295595</td>
+      <td>2.710157</td>
+      <td>13.345463</td>
+      <td>2.335479</td>
+    </tr>
+    <tr>
+      <th>407</th>
+      <td>-0.038257</td>
+      <td>8.728498</td>
+      <td>2.102803</td>
+      <td>1.870541</td>
+      <td>0.782583</td>
+      <td>2.021527</td>
+      <td>2.680047</td>
+      <td>1.295704</td>
+      <td>1.716122</td>
+      <td>1.112039</td>
+      <td>...</td>
+      <td>1.883393</td>
+      <td>0.701129</td>
+      <td>2.403748</td>
+      <td>2.701393</td>
+      <td>1.573005</td>
+      <td>3.247963</td>
+      <td>2.305770</td>
+      <td>2.435769</td>
+      <td>13.624533</td>
+      <td>2.287940</td>
+    </tr>
+    <tr>
+      <th>408</th>
+      <td>0.254669</td>
+      <td>10.289223</td>
+      <td>1.933862</td>
+      <td>2.539970</td>
+      <td>0.168840</td>
+      <td>2.607727</td>
+      <td>2.538013</td>
+      <td>0.113553</td>
+      <td>3.241333</td>
+      <td>2.223520</td>
+      <td>...</td>
+      <td>6.140669</td>
+      <td>1.847788</td>
+      <td>1.193516</td>
+      <td>0.819007</td>
+      <td>1.382885</td>
+      <td>0.913976</td>
+      <td>2.043625</td>
+      <td>0.751728</td>
+      <td>14.481518</td>
+      <td>2.834265</td>
+    </tr>
+    <tr>
+      <th>409</th>
+      <td>0.243213</td>
+      <td>13.866776</td>
+      <td>0.072664</td>
+      <td>1.043179</td>
+      <td>-0.051139</td>
+      <td>4.473774</td>
+      <td>1.771171</td>
+      <td>1.584222</td>
+      <td>4.893187</td>
+      <td>4.736353</td>
+      <td>...</td>
+      <td>8.189964</td>
+      <td>2.338869</td>
+      <td>2.845908</td>
+      <td>1.140788</td>
+      <td>-0.275009</td>
+      <td>2.504928</td>
+      <td>4.931875</td>
+      <td>3.187832</td>
+      <td>19.352989</td>
+      <td>0.957393</td>
+    </tr>
+    <tr>
+      <th>410</th>
+      <td>2.687545</td>
+      <td>14.526915</td>
+      <td>3.441904</td>
+      <td>1.239545</td>
+      <td>2.281008</td>
+      <td>2.358840</td>
+      <td>1.231699</td>
+      <td>1.176513</td>
+      <td>3.691090</td>
+      <td>1.004248</td>
+      <td>...</td>
+      <td>11.924853</td>
+      <td>1.308427</td>
+      <td>0.306832</td>
+      <td>3.636075</td>
+      <td>1.498553</td>
+      <td>3.189132</td>
+      <td>0.258857</td>
+      <td>4.084857</td>
+      <td>18.031036</td>
+      <td>2.995944</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 29 columns</p>
+</div></div>
+</div>
+<p>Sparse count matrix with counts are stored in the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.html">COO format</a>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;mod/prot/layers/counts.parquet&quot;).to_pandas().tail()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>row</th>
+      <th>col</th>
+      <th>data</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>11098</th>
+      <td>410</td>
+      <td>23</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>11099</th>
+      <td>410</td>
+      <td>24</td>
+      <td>6.0</td>
+    </tr>
+    <tr>
+      <th>11100</th>
+      <td>410</td>
+      <td>26</td>
+      <td>6.0</td>
+    </tr>
+    <tr>
+      <th>11101</th>
+      <td>410</td>
+      <td>27</td>
+      <td>888.0</td>
+    </tr>
+    <tr>
+      <th>11102</th>
+      <td>410</td>
+      <td>28</td>
+      <td>3.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>For example, we can count proteins with a simple SQL query:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import duckdb
+duckdb.query(f&#39;&#39;&#39;
+    SELECT COUNT(*)
+    FROM &#39;{file}/mod/prot/var.parquet&#39;
+&#39;&#39;&#39;).fetchall()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[(29,)]
+</pre></div></div>
+</div>
+<blockquote>
+<div><p>If you want to read more about the Python API of DuckDB, you can <a class="reference external" href="https://duckdb.org/docs/api/python/overview.html">find an intro here</a>.</p>
+</div></blockquote>
+</section>
+<section id="JSON-files">
+<h3>JSON files<a class="headerlink" href="#JSON-files" title="Link to this heading">#</a></h3>
+<p>Simpler objects such as scalar values are serialised into <a class="reference external" href="https://www.json.org/json-en.html">JSON files</a>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>with open(file / &quot;mod/rna/uns.json&quot;) as uns_file:
+    uns = json.load(uns_file)
+
+    print(json.dumps(uns, indent=4))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{
+    &#34;hvg&#34;: {
+        &#34;flavor&#34;: &#34;seurat&#34;
+    },
+    &#34;leiden&#34;: {
+        &#34;params&#34;: {
+            &#34;n_iterations&#34;: -1,
+            &#34;random_state&#34;: 0,
+            &#34;resolution&#34;: 0.75
+        }
+    },
+    &#34;neighbors&#34;: {
+        &#34;connectivities_key&#34;: &#34;connectivities&#34;,
+        &#34;distances_key&#34;: &#34;distances&#34;,
+        &#34;params&#34;: {
+            &#34;method&#34;: &#34;umap&#34;,
+            &#34;metric&#34;: &#34;euclidean&#34;,
+            &#34;n_neighbors&#34;: 15,
+            &#34;random_state&#34;: 0
+        }
+    },
+    &#34;pca&#34;: {
+        &#34;params&#34;: {
+            &#34;use_highly_variable&#34;: true,
+            &#34;zero_center&#34;: true
+        }
+    },
+    &#34;rank_genes_groups&#34;: {
+        &#34;params&#34;: {
+            &#34;corr_method&#34;: &#34;benjamini-hochberg&#34;,
+            &#34;groupby&#34;: &#34;leiden&#34;,
+            &#34;method&#34;: &#34;t-test_overestim_var&#34;,
+            &#34;reference&#34;: &#34;rest&#34;,
+            &#34;use_raw&#34;: true
+        }
+    },
+    &#34;umap&#34;: {
+        &#34;params&#34;: {
+            &#34;a&#34;: 0.5830300205483709,
+            &#34;b&#34;: 1.334166992455648,
+            &#34;random_state&#34;: 11
+        }
+    }
+}
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Reading">
+<h2>Reading<a class="headerlink" href="#Reading" title="Link to this heading">#</a></h2>
+<p>AnnData reader will return an in-memory AnnData object, and MuData reader will return an in-memory MuData object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>read_mudata(file)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/danila/git/scv/mudata/src/mudata/_core/mudata.py:1454: FutureWarning: From 0.4 .update() will not pull obs/var columns from individual modalities by default anymore. Set mudate.set_options(pull_on_update=False) to adopt the new behaviour, which will become the default. Use new pull_obs/pull_var and push_obs/push_var methods for more flexibility.
+  self._update_attr(&#34;var&#34;, axis=0, join_common=join_common)
+/Users/danila/git/scv/mudata/src/mudata/_core/mudata.py:1352: FutureWarning: From 0.4 .update() will not pull obs/var columns from individual modalities by default anymore. Set mudate.set_options(pull_on_update=False) to adopt the new behaviour, which will become the default. Use new pull_obs/pull_var and push_obs/push_var methods for more flexibility.
+  self._update_attr(&#34;obs&#34;, axis=1, join_common=join_common)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<pre>MuData object with n_obs × n_vars = 411 × 56
+  obs:      &#x27;louvain&#x27;, &#x27;leiden&#x27;, &#x27;leiden_wnn&#x27;, &#x27;celltype&#x27;
+  var:      &#x27;gene_ids&#x27;, &#x27;feature_types&#x27;, &#x27;highly_variable&#x27;
+  obsm:     &#x27;X_wnn_umap&#x27;, &#x27;X_umap&#x27;, &#x27;X_mofa_umap&#x27;, &#x27;X_mofa&#x27;
+  varm:     &#x27;LFs&#x27;
+  obsp:     &#x27;connectivities&#x27;, &#x27;distances&#x27;, &#x27;wnn_connectivities&#x27;, &#x27;wnn_distances&#x27;
+  2 modalities
+    prot:   411 x 29
+      var:  &#x27;gene_ids&#x27;, &#x27;feature_types&#x27;, &#x27;highly_variable&#x27;
+      uns:  &#x27;neighbors&#x27;, &#x27;pca&#x27;, &#x27;umap&#x27;
+      obsm: &#x27;X_pca&#x27;, &#x27;X_umap&#x27;
+      varm: &#x27;PCs&#x27;
+      layers:       &#x27;counts&#x27;
+      obsp: &#x27;connectivities&#x27;, &#x27;distances&#x27;
+    rna:    411 x 27
+      obs:  &#x27;n_genes_by_counts&#x27;, &#x27;total_counts&#x27;, &#x27;total_counts_mt&#x27;, &#x27;pct_counts_mt&#x27;, &#x27;leiden&#x27;, &#x27;celltype&#x27;
+      var:  &#x27;gene_ids&#x27;, &#x27;feature_types&#x27;, &#x27;mt&#x27;, &#x27;n_cells_by_counts&#x27;, &#x27;mean_counts&#x27;, &#x27;pct_dropout_by_counts&#x27;, &#x27;total_counts&#x27;, &#x27;highly_variable&#x27;, &#x27;means&#x27;, &#x27;dispersions&#x27;, &#x27;dispersions_norm&#x27;, &#x27;mean&#x27;, &#x27;std&#x27;
+      uns:  &#x27;hvg&#x27;, &#x27;leiden&#x27;, &#x27;neighbors&#x27;, &#x27;pca&#x27;, &#x27;rank_genes_groups&#x27;, &#x27;umap&#x27;, &#x27;celltype_colors&#x27;, &#x27;leiden_colors&#x27;
+      obsm: &#x27;X_pca&#x27;, &#x27;X_umap&#x27;
+      varm: &#x27;PCs&#x27;
+      obsp: &#x27;connectivities&#x27;, &#x27;distances&#x27;</pre></div>
+</div>
+<p>Together, these methods in <code class="docutils literal notranslate"><span class="pre">pqdata</span></code> make the Parquet-based serialisation compatible with the whole <a class="reference external" href="https://scverse.org/">scverse ecosystem</a> while also providing benefits for out-of-memory analytics on large datasets.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="getting-started-anndata-mudata-parquet-serialization.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Parquet-based serialisation for AnnData/MuData</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Writing">Writing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#File-size">File size</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#.pqdata-structure"><em>.pqdata</em> structure</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Parquet-files">Parquet files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#JSON-files">JSON files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Reading">Reading</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Danila Bredikhin
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Danila Bredikhin.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
