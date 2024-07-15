@@ -145,7 +145,7 @@ def _read_data(path: str):
         raw = AnnData(**raw_dict)
         data_dict["raw"] = raw
 
-    # obsm / varm / obsp / varp / layers
+    # obsm / varm / obsp / varp / layers / obsmap / varmap
     for key in ["obsm", "varm", "obsp", "varp", "layers", "obsmap", "varmap"]:
         elem_path = os.path.join(path, key)
         if os.path.exists(elem_path):
@@ -154,7 +154,7 @@ def _read_data(path: str):
                 item_name = os.path.splitext(file)[0]
                 item_path = os.path.join(elem_path, file)
                 # TODO: use metadata for that
-                data_dict[key][item_name] = read_table(item_path, kind="array")
+                data_dict[key][item_name] = read_table(item_path)
     # uns
     uns_json_path = os.path.join(path, "uns.json")
     if os.path.exists(uns_json_path):

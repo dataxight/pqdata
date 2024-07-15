@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 def write_table(
     df, path: str, key: str, colnames=None, compression: Optional[str] = None
 ):
+    table = None
 
     if hasattr(df, "to_parquet"):
         def f(x):
@@ -38,34 +39,42 @@ def write_table(
                 colnames = [f"{i+1}" for i in range(df.shape[1])]
 
         if not isinstance(df, pa.Table):
-            try:
-                df = pa.table({colnames[j]: column for j, column in enumerate(df.T)})
-            except ArrowInvalid:
-                import numpy as np
-                df = pa.table({colnames[j]: np.array(column) for j, column in enumerate(df.T)})
-            schema = pa.schema(
-                # Schema is required to be bytes
-                df.schema,
-                metadata={
-                    "array": json.dumps(
-                        {
-                            "shape": df.shape,
-                            "class": {
-                                "module": df.__class__.__module__,
-                                "name": df.__class__.__name__,
-                            },
-                        }
-                    )
-                },
-            )
-            df = df.cast(schema)
+            # vector or structured array?
+            if df.ndim == 1:
+                if df.dtype.names is not None:
+                    colnames = df.dtype.names
+                table = pa.Table.from_arrays(
+                    [df],
+                    names=colnames,
+                )
+            else:
+                try:
+                    table = pa.table({colnames[j]: column for j, column in enumerate(df.T)})
+                except ArrowInvalid:
+                    import numpy as np
+                    table = pa.table({colnames[j]: np.array(column) for j, column in enumerate(df.T)})
+            schema = table.schema.with_metadata({
+                "array": json.dumps(
+                    {
+                        "shape": df.shape,
+                        "class": {
+                            "module": df.__class__.__module__,
+                            "name": df.__class__.__name__,
+                        },
+                    }
+                )
+            })
+            table = table.replace_schema_metadata(metadata=schema.metadata)
 
         def f(x):
             return partial(pq.write_table, x, compression=compression)
 
     filepath = os.path.join(path, f"{key}.parquet")
 
-    f(df)(filepath)
+    if table is None:
+        return f(df)(filepath)
+
+    f(table)(filepath)
 
 
 def write_sparse(mx, path: str, key: str, compression: Optional[str] = None):
@@ -83,29 +92,18 @@ def write_sparse(mx, path: str, key: str, compression: Optional[str] = None):
 
     df = pa.table({"row": x.row, "col": x.col, "data": x.data})
 
-    schema = pa.schema(
-        # Schema is required to be bytes
-        df.schema,
-        metadata={
-            "array": json.dumps(
-                {
-                    "shape": x.shape,
-                    "class": {
-                        "module": mx.__class__.__module__,
-                        "name": mx.__class__.__name__,
-                    },
-                }
-            )
-        },
-    )
-    df = df.cast(schema)
-
-    # schema = pa.schema(
-    #    # Schema is required to be bytes
-    #    # "pandas" is in order to use .pandas_metadata
-    #    df.schema,
-    #    metadata={"pandas": json.dumps({"shape": x.shape})},
-    # )
+    schema = df.schema.with_metadata({
+        "array": json.dumps(
+            {
+                "shape": x.shape,
+                "class": {
+                    "module": mx.__class__.__module__,
+                    "name": mx.__class__.__name__,
+                },
+            }
+        )
+    })
+    df = df.replace_schema_metadata(metadata=schema.metadata)
 
     pq.write_table(df, filepath, compression=compression)
 
@@ -138,22 +136,18 @@ def return_or_write(d, parentpath, globalpath, compression: Optional[str] = None
                 names=[parentkey],
             )
 
-            schema = pa.schema(
-                # Schema is required to be bytes
-                table.schema,
-                metadata={
-                    "array": json.dumps(
-                        {
-                            "shape": d.shape,
-                            "class": {
-                                "module": d.__class__.__module__,
-                                "name": d.__class__.__name__,
-                            },
-                        }
-                    )
-                },
-            )
-            table = table.cast(schema)
+            schema = table.schema.with_metadata({
+                "array": json.dumps(
+                    {
+                        "shape": d.shape,
+                        "class": {
+                            "module": d.__class__.__module__,
+                            "name": d.__class__.__name__,
+                        },
+                    }
+                )
+            })
+            table = table.replace_schema_metadata(metadata=schema.metadata)
 
         elif d.ndim == 1:  # structured arrays
             import pandas as pd
@@ -272,7 +266,7 @@ def _write_data(
                     compression=compression,
                 )
 
-    # obsm / varm / obsp / varp / layers
+    # obsm / varm / obsp / varp / layers / obsmap / varmap
     for key in ["obsm", "varm", "obsp", "varp", "layers", "obsmap", "varmap"]:
         if hasattr(data, key):
             elem = getattr(data, key)
@@ -298,8 +292,7 @@ def _write_data(
                     elif key == "obsmap" or key == "varmap":
                         from pandas import DataFrame
 
-                        elem_item = DataFrame(elem_item)
-                        elem_item.columns = [item]
+                        colnames = [item]
 
                     if issparse(elem_item):
                         write_sparse(
