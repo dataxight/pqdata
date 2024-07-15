@@ -23,7 +23,9 @@ classifiers = [
     "Intended Audience :: Science/Research"
 ]
 dependencies = [
+    "pandas",
     "pyarrow",
+    "scipy",
 ]
 dynamic = ["version"]
 
@@ -51,7 +53,6 @@ doc = [
 test = [
     "pytest",
     "pytest-cov",
-    "scipy",
     "zarr",
 ]
 
