@@ -75,6 +75,7 @@ exclude = [
 
 [tool.ruff]
 src = ["src"]
+exclude = ["src/pqdata/_version.py"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -99,9 +100,6 @@ ignore = [
     # allow I, O, l as variable names -> I is the identity matrix, i, j, k, l is reasonable indexing notation
     "E741",
 ]
-
-[tool.ruff]
-exclude = ["src/pqdata/_version.py"]
 
 [tool.jupytext]
 formats = "ipynb,md"
