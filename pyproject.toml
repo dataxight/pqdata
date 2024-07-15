@@ -100,6 +100,8 @@ ignore = [
     "E741",
 ]
 
+[tool.ruff]
+exclude = ["src/pqdata/_version.py"]
 
 [tool.jupytext]
 formats = "ipynb,md"
