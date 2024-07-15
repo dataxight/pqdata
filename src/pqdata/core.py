@@ -1,13 +1,12 @@
 import json
-from pathlib import Path
-from os import  PathLike
 import os
+from os import PathLike
+from pathlib import Path
 from typing import Any
 
 from pyarrow import parquet as pq
 
 from .io.read import read_table
-
 
 SUPPORTED_EXTENSIONS = ".parquet", ".pq", ".json", ".yaml", ".yml", ".toml"
 
@@ -21,17 +20,17 @@ class Group:
         self.path = Path(path)
         if not self.path.exists():
             raise FileNotFoundError(f"Path {self.path} does not exist.")
-        
+
         if origin is None:
             self.og = self.path
         else:
             self.og = Path(origin)
 
         self.name = "/"
-        
+
         # Note there is nothing else happening at this point,
         # no locks are acquired, no files are opened, etc.
-    
+
     def __repr__(self):
         return f"ParquetStorage({self.path})"
 
@@ -51,7 +50,7 @@ class Group:
     @property
     def attrs(self):
         if self.name.endswith("mod"):
-            with open(self.path / "../pqdata.json", "r") as file:
+            with (self.path / "../pqdata.json").open() as file:
                 attrs = json.load(file)
                 try:
                     attrs['mod']['mod-order'] = attrs['mod']['order']
@@ -69,7 +68,7 @@ class GroupAccessor(Group):
         super().__init__(path, origin)
         self.name = str(Path(self.name) / key)
         self.contents = memo
-    
+
     def __getitem__(self, key: str):
         if key == "/":
             return GroupAccessor(self.og, self.og, key="/")
@@ -90,7 +89,7 @@ class GroupAccessor(Group):
             if (textfile := self.path / f"{key}.{suffix}").exists():
                 memo |= read_textfile(textfile)
                 fileformat = suffix
-                
+
         # directory?
         filepath = self.path / key
         if filepath.exists():
@@ -102,21 +101,21 @@ class GroupAccessor(Group):
             if filepath.exists():
                 fileformat = suffix
                 break
-        
+
         # content?
         if self.contents:
             try:
                 return self.contents[key]
             except KeyError:
                 pass
-        
+
         if fileformat is None:
             raise KeyError(f"Key {key} not found in {self.path}")
         elif fileformat in ("parquet", "pq"):
             return Array(filepath, fileformat, root=self.name, key=key)
         else:
             return GroupContents(filepath, fileformat, key=key)
-    
+
     def __repr__(self):
         return f"ParquetStorage({self.path})"
 
@@ -135,7 +134,7 @@ class GroupAccessor(Group):
         exceptions: tuple[str] = ()
         if self.path.suffix == ".pqdata":
             exceptions = ("pqdata.json", "pqdata.yaml", "pqdata.toml")
-        
+
         used_keys = []
         for key in all_keys:
             if key in exceptions:
@@ -163,28 +162,26 @@ class GroupAccessor(Group):
                 exists = path.exists()
                 if exists:
                     break
-        
+
         return exists
 
     def __iter__(self):
         return iter(self.keys())
-    
+
 
 def read_textfile(path: PathLike):
+    path = Path(path)
     if path.suffix == ".json":
-        import json
-        with open(path, "r") as file:
-            return json.load(file)
+        import json as lib
     elif path.suffix in (".yaml", ".yml"):
-        import yaml
-        with open(path, "r") as file:
-            return yaml.load(file)
+        import yaml as lib
     elif path.suffix == ".toml":
-        import toml
-        with open(path, "r") as file:
-            return toml.load(file)
+        import toml as lib
     else:
         raise NotImplementedError(f"File format {path.suffix} not supported.")
+
+    with path.open() as file:
+        return lib.load(file)
 
 
 class GroupContents(Group):
@@ -207,7 +204,7 @@ class GroupContents(Group):
             self.contents = toml.load(self.path)
         else:
             raise NotImplementedError(f"File format {fileformat} not supported.")
-    
+
     def __getitem__(self, key: str):
         try:
             self.contents[key]
@@ -232,14 +229,14 @@ class Array:
         r, c = meta.num_rows, meta.num_columns
         self.shape = (r, c)
         # FIXME: not true for sparse matrices
-    
+
     def __getitem__(self, key: str):
         raise NotImplementedError("PqArray does not support __getitem__.")
 
     def __repr__(self) -> str:
         schema = pq.read_schema(self.path)
         c_types = ', '.join([f"{c.name}:{c.type}" for c in schema])
-        s = f"ParquetArray({self.path}): shape ({','.join((str(e) for e in self.shape))}), type ({c_types})"
+        s = f"ParquetArray({self.path}): shape ({','.join(str(e) for e in self.shape)}), type ({c_types})"
         return s
 
     @property

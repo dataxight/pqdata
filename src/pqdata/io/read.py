@@ -1,11 +1,11 @@
+import json
 import os
-from typing import Literal, Dict, Any
+from pathlib import Path
+from typing import Any, Literal
 from warnings import warn
 
-from scipy.sparse import coo_matrix
-
 from pyarrow import parquet as pq
-import json
+from scipy.sparse import coo_matrix
 
 
 def read_table(path: str, kind: Literal["array", "dataframe", "polars"] = None):
@@ -84,7 +84,7 @@ def read_sparse(path: str):
     return coo_matrix((table["data"], (table["row"], table["col"])))
 
 
-def put_into_dict(d: Dict, key: str, v: Any):
+def put_into_dict(d: dict, key: str, v: Any):
     key_levels = os.path.normpath(key).split(os.path.sep)
     dict_loc = d
     for level in key_levels[:-1]:
@@ -96,14 +96,12 @@ def put_into_dict(d: Dict, key: str, v: Any):
     return
 
 
-def read_tables_add_to_dict(path: str, d: Dict):
+def read_tables_add_to_dict(path: str, d: dict):
 
     for root, dirs, files in os.walk(path):
         for file in files:
-            file_path = os.path.join(root, file)
-            table_loc = os.path.splitext(
-                os.path.join(file_path[len(path) :].strip(os.path.sep))
-            )[0]
+            file_path = Path(root) / file
+            table_loc = Path(file_path[len(path) :].strip(os.path.sep)).with_suffix('')
 
             table = read_table(file_path)
 
@@ -119,25 +117,25 @@ def _read_data(path: str):
 
     # serialisation metadata
     attributes: dict[str, Any] = {}
-    attrs_json_path = os.path.join(path, "pqdata.json")
-    if os.path.exists(attrs_json_path):
-        with open(attrs_json_path, "r") as file:
+    attrs_json_path = Path(path) / "pqdata.json"
+    if Path(attrs_json_path).exists():
+        with Path(attrs_json_path).open() as file:
             attributes = json.load(file)
 
     # obs / var
     for key in ["obs", "var"]:
-        elem_path = os.path.join(path, f"{key}.parquet")
-        if os.path.exists(elem_path):
+        elem_path = Path(path) / f"{key}.parquet"
+        if Path(elem_path).exists():
             data_dict[key] = read_table(elem_path, kind="dataframe")
 
     # X (AnnData)
-    x_path = os.path.join(path, "X.parquet")
-    if os.path.exists(x_path):
+    x_path = Path(path) / "X.parquet"
+    if Path(x_path).exists():
         data_dict["X"] = read_table(x_path, kind="array")
 
     # raw (AnnData)
-    raw_path = os.path.join(path, "raw")
-    if os.path.exists(raw_path):
+    raw_path = Path(path) / "raw"
+    if Path(raw_path).exists():
         raw_dict = {}
         read_tables_add_to_dict(raw_path, raw_dict)
         from anndata import AnnData
@@ -147,33 +145,33 @@ def _read_data(path: str):
 
     # obsm / varm / obsp / varp / layers / obsmap / varmap
     for key in ["obsm", "varm", "obsp", "varp", "layers", "obsmap", "varmap"]:
-        elem_path = os.path.join(path, key)
-        if os.path.exists(elem_path):
+        elem_path = Path(path) / key
+        if Path(elem_path).exists():
             data_dict[key] = {}
             for file in os.listdir(elem_path):
-                item_name = os.path.splitext(file)[0]
-                item_path = os.path.join(elem_path, file)
+                item_name = Path(file).with_suffix('')
+                item_path = Path(elem_path) / file
                 # TODO: use metadata for that
                 data_dict[key][item_name] = read_table(item_path)
     # uns
-    uns_json_path = os.path.join(path, "uns.json")
-    if os.path.exists(uns_json_path):
-        with open(uns_json_path, "r") as file:
+    uns_json_path = Path(path) / "uns.json"
+    if Path(uns_json_path).exists():
+        with Path(uns_json_path).open() as file:
             data_dict["uns"] = json.load(file)
     else:
         data_dict["uns"] = {}
 
-    uns_dir_path = os.path.join(path, "uns")
-    if os.path.exists(uns_dir_path):
+    uns_dir_path = Path(path) / "uns"
+    if Path(uns_dir_path).exists():
         read_tables_add_to_dict(uns_dir_path, data_dict["uns"])
 
     # mod (MuData)
-    mod_path = os.path.join(path, "mod")
-    if os.path.exists(mod_path):
+    mod_path = Path(path) / "mod"
+    if Path(mod_path).exists():
         data_dict["mod"] = dict()
         modalities = os.listdir(mod_path)
         for m in modalities:
-            mpath = os.path.join(mod_path, m)
+            mpath = Path(mod_path) / m
             # TODO: Allow for nested MuData
             data_dict["mod"][m] = read_anndata(mpath)
 

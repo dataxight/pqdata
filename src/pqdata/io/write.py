@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
-from functools import partial
-from typing import Dict, TYPE_CHECKING, Union, Optional, Any
 from collections import OrderedDict
-import json
-
-from scipy.sparse import issparse, coo_matrix
+from functools import partial
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pyarrow as pa
-from pyarrow import parquet as pq
 from pyarrow import ArrowInvalid
+from pyarrow import parquet as pq
+from scipy.sparse import coo_matrix, issparse
 
 if TYPE_CHECKING:
     from anndata import AnnData
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 def write_table(
-    df, path: str, key: str, colnames=None, compression: Optional[str] = None
+    df, path: str, key: str, colnames=None, compression: str | None = None
 ):
     table = None
 
@@ -69,7 +69,7 @@ def write_table(
         def f(x):
             return partial(pq.write_table, x, compression=compression)
 
-    filepath = os.path.join(path, f"{key}.parquet")
+    filepath = Path(path) / f"{key}.parquet"
 
     if table is None:
         return f(df)(filepath)
@@ -77,7 +77,7 @@ def write_table(
     f(table)(filepath)
 
 
-def write_sparse(mx, path: str, key: str, compression: Optional[str] = None):
+def write_sparse(mx, path: str, key: str, compression: str | None = None):
     import json
 
     if issparse(mx):
@@ -88,7 +88,7 @@ def write_sparse(mx, path: str, key: str, compression: Optional[str] = None):
     else:
         raise ValueError("Matrix is not sparse")
 
-    filepath = os.path.join(path, f"{key}.parquet")
+    filepath = Path(path) / f"{key}.parquet"
 
     df = pa.table({"row": x.row, "col": x.col, "data": x.data})
 
@@ -108,13 +108,13 @@ def write_sparse(mx, path: str, key: str, compression: Optional[str] = None):
     pq.write_table(df, filepath, compression=compression)
 
 
-def return_or_write(d, parentpath, globalpath, compression: Optional[str] = None):
+def return_or_write(d, parentpath, globalpath, compression: str | None = None):
     # Deprecated in anndata:
     # from anndata.compat._overloaded_dict import OverloadedDict
 
     # OrderedDict, OverloadedDict -> Dict
     if (
-        isinstance(d, Dict)
+        isinstance(d, dict)
         or isinstance(d, OrderedDict)
         or type(d).__name__ == "OverloadedDict"
     ):
@@ -123,7 +123,7 @@ def return_or_write(d, parentpath, globalpath, compression: Optional[str] = None
             if hasattr(v, "ndim") and v.ndim == 0:  # numpy scalars
                 v = v.item()
             maybe_write = return_or_write(
-                v, os.path.join(parentpath, k), globalpath, compression=compression
+                v, Path(parentpath) / k, globalpath, compression=compression
             )
             if maybe_write is not None:
                 new_d[k] = maybe_write
@@ -156,8 +156,8 @@ def return_or_write(d, parentpath, globalpath, compression: Optional[str] = None
             table.columns = d.dtype.names
         else:
             table = d
-        elem_path = os.path.join(globalpath, rootpath)
-        os.makedirs(elem_path, exist_ok=True)
+        elem_path = Path(globalpath) / rootpath
+        Path(elem_path).mkdir(parents=True, exist_ok=True)
         write_table(table, elem_path, parentkey, compression=compression)
         return None
     else:
@@ -165,31 +165,31 @@ def return_or_write(d, parentpath, globalpath, compression: Optional[str] = None
 
 
 def write_json_and_maybe_tables(
-    struct: Dict, path: str, key: str, compression: Optional[str] = None
+    struct: dict, path: str, key: str, compression: str | None = None
 ):
 
     key_simple = return_or_write(
-        struct, "", os.path.join(path, key), compression=compression
+        struct, "", Path(path) / key, compression=compression
     )
 
-    key_path = f"{os.path.join(path, key)}.json"
+    key_path = f"{Path(path) / key}.json"
 
-    with open(key_path, "w") as key_file:
+    with Path(key_path).open("w") as key_file:
         json.dump(key_simple, key_file)
 
 
 def _write_data(
-    data: Union["AnnData", "MuData"],
+    data: AnnData | MuData,
     path: str,
     *,
     overwrite: bool = False,
-    compression: Optional[str] = "snappy",
+    compression: str | None = "snappy",
     **kwargs,
 ):
 
-    if os.path.exists(path) and overwrite:
+    if Path(path).exists() and overwrite:
         shutil.rmtree(path)
-    os.mkdir(path)
+    Path(path).mkdir()
 
     attributes: dict[str, Any] = {}
 
@@ -224,8 +224,8 @@ def _write_data(
     # NOTE: this is only to support legacy objects and files
     # NOTE: new objects should not use .raw
     if hasattr(data, "raw") and data.raw is not None:
-        rawpath = os.path.join(path, "raw")
-        os.makedirs(rawpath)
+        rawpath = Path(path) / "raw"
+        Path(rawpath).mkdir(parents=True)
         # raw.X
         if issparse(data.raw.X):
             write_sparse(data.raw.X, rawpath, "X", compression=compression)
@@ -254,8 +254,8 @@ def _write_data(
 
         # raw.varm
         if data.raw.varm is not None and len(data.raw.varm) > 0:
-            rawvarmpath = os.path.join(rawpath, "varm")
-            os.makedirs(rawvarmpath)
+            rawvarmpath = Path(rawpath) / "varm"
+            Path(rawvarmpath).mkdir(parents=True)
             for item in data.raw.varm:
                 # TODO: account for 1d arrays
                 write_table(
@@ -271,8 +271,8 @@ def _write_data(
         if hasattr(data, key):
             elem = getattr(data, key)
             if elem is not None and len(elem) > 0:
-                subpath = os.path.join(path, key)
-                os.makedirs(subpath)
+                subpath = Path(path) / key
+                Path(subpath).mkdir(parents=True)
                 for item in elem.keys():
                     # Do not serialise 1D arrays from earlier MuData files
                     if (
@@ -312,11 +312,11 @@ def _write_data(
 
     # mod (MuData)
     if hasattr(data, "mod") and data.mod is not None:
-        mod_subpath = os.path.join(path, "mod")
-        if not os.path.exists(mod_subpath):
-            os.mkdir(mod_subpath)
+        mod_subpath = Path(path) / "mod"
+        if not Path(mod_subpath).exists():
+            Path(mod_subpath).mkdir()
         for mod_key, modality in data.mod.items():
-            mod_path = os.path.join(mod_subpath, mod_key)
+            mod_path = Path(mod_subpath) / mod_key
             _write_data(
                 modality,
                 mod_path,
@@ -334,7 +334,7 @@ def _write_data(
     # uns
     if hasattr(data, "uns") and data.uns is not None:
         if len(data.uns) > 0:
-            # uns_path = os.path.join(path, "uns.json")
+            # uns_path = Path(path) / "uns.json"
             write_json_and_maybe_tables(data.uns, path, "uns", compression=compression)
 
     # serialisation metadata

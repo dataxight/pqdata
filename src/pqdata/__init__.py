@@ -14,5 +14,5 @@ from .core import open_storage as open
 from .io.read import read_anndata, read_mudata
 from .io.write import write_anndata, write_mudata
 
-__all__ = ["open", "read_anndata", "read_mudata", "write_anndata", "write_mudata"]
+__all__ = ["open", "read_anndata", "read_mudata", "write_anndata", "write_mudata", "__version__"]
 
