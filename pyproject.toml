@@ -51,6 +51,8 @@ doc = [
     "recommonmark",
 ]
 test = [
+    "anndata",
+    "mudata",
     "pytest",
     "pytest-cov",
     "zarr",
