@@ -407,7 +407,7 @@ ParquetStorage(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata)
 </pre></div></div>
 </div>
 <blockquote>
-<div><p>Cf. <code class="docutils literal notranslate"><span class="pre">`zarr.open</span></code> &lt;<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open">https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open</a>&gt;`__, <code class="docutils literal notranslate"><span class="pre">`h5py.File</span></code> &lt;<a class="reference external" href="https://docs.h5py.org/en/stable/high/file.html#opening-creating-files">https://docs.h5py.org/en/stable/high/file.html#opening-creating-files</a>&gt;`__</p>
+<div><p>Cf. <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open">zarr.open</a>, <a class="reference external" href="https://docs.h5py.org/en/stable/high/file.html#opening-creating-files">h5py.File</a></p>
 </div></blockquote>
 <p>“Opening” the file is fast as it doesn’t do much apart from remembering the location it is pointed at:</p>
 <div class="nbinput docutils container">
@@ -597,7 +597,7 @@ umap_embedding = table.to_pandas().to_numpy()
 </div>
 <section id="read_elem()">
 <h3><code class="docutils literal notranslate"><span class="pre">read_elem()</span></code><a class="headerlink" href="#read_elem()" title="Link to this heading">#</a></h3>
-<p>Libraries like <code class="docutils literal notranslate"><span class="pre">anndata</span></code> store custom encoding types with the schema defined by the specification and provide the <code class="docutils literal notranslate"><span class="pre">`read_elem()</span></code> &lt;<a class="reference external" href="https://anndata.readthedocs.io/en/latest/generated/anndata.experimental.read_elem.html">https://anndata.readthedocs.io/en/latest/generated/anndata.experimental.read_elem.html</a>&gt;`__ interface to access individual objects like arrays, matrices, tables, etc.</p>
+<p>Libraries like <code class="docutils literal notranslate"><span class="pre">anndata</span></code> store custom encoding types with the schema defined by the specification and provide the <a class="reference external" href="https://anndata.readthedocs.io/en/latest/generated/anndata.experimental.read_elem.html">read_elem()</a> interface to access individual objects like arrays, matrices, tables, etc.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">pqdata</span></code>, objects like that are stored as tables in Parquet files*, and the original object class is preserved in metadata. This way there’s no need to define custom encoding types and schemas as this is handled by Parquet files.</p>
 <blockquote>
 <div><p>* simpler entities like scalars are stored in JSON files)</p>
