@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Parquet-based serialisation for AnnData/MuData &#8212; pqdata  documentation</title>
+    <title>Low-level access to .pqdata &#8212; pqdata  documentation</title>
   
   
   
@@ -44,11 +44,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/getting-started-anndata-mudata-parquet-serialization';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/low-level-interface';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Parquet-based serialisation" href="pqdata-serialization-intro.html" />
-    <link rel="prev" title="Examples" href="index.html" />
+    <link rel="next" title="API" href="../api.html" />
+    <link rel="prev" title="Parquet-based serialisation" href="pqdata-serialization-intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -154,9 +154,9 @@
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Parquet-based serialisation for AnnData/MuData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started-anndata-mudata-parquet-serialization.html">Parquet-based serialisation for AnnData/MuData</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pqdata-serialization-intro.html">Parquet-based serialisation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="low-level-interface.html">Low-level access to <code class="docutils literal notranslate"><span class="pre">.pqdata</span></code></a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Low-level access to <code class="docutils literal notranslate"><span class="pre">.pqdata</span></code></a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
@@ -215,7 +215,7 @@
       
       
       
-      <li><a href="../_sources/examples/getting-started-anndata-mudata-parquet-serialization.ipynb" target="_blank"
+      <li><a href="../_sources/examples/low-level-interface.ipynb" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -299,7 +299,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Parquet-based serialisation for AnnData/MuData</h1>
+    <h1>Low-level access to .pqdata</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -309,8 +309,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#MuData-Parquet-based-I/O">MuData Parquet-based I/O</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#AnnData-Parquet-based-I/O">AnnData Parquet-based I/O</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -322,180 +321,115 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="Parquet-based-serialisation-for-AnnData/MuData">
-<h1>Parquet-based serialisation for AnnData/MuData<a class="headerlink" href="#Parquet-based-serialisation-for-AnnData/MuData" title="Link to this heading">#</a></h1>
-<p>Serialise <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> and <code class="docutils literal notranslate"><span class="pre">MuData</span></code> objects into directories with <a class="reference external" href="https://parquet.apache.org/">Parquet files</a>.</p>
+  <section id="Low-level-access-to-.pqdata">
+<h1>Low-level access to <code class="docutils literal notranslate"><span class="pre">.pqdata</span></code><a class="headerlink" href="#Low-level-access-to-.pqdata" title="Link to this heading">#</a></h1>
+<p>Akin <code class="docutils literal notranslate"><span class="pre">h5py</span></code> and <code class="docutils literal notranslate"><span class="pre">zarr</span></code> libraries, <code class="docutils literal notranslate"><span class="pre">pqdata</span></code> implements a simple lower-level access interface for the contents of the <code class="docutils literal notranslate"><span class="pre">.pqdata</span></code> directories.</p>
 <p>Some imports first:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
-from pathlib import Path
-import pytest
-
-import mudata
-from mudata import AnnData, MuData
-
-from pqdata.io.write import write_anndata, write_mudata
-from pqdata.io.read import read_anndata, read_mudata
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+from pyarrow import parquet as pa
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mudata.set_options(pull_on_update=False)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pqdata
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;mudata._core.config.set_options at 0x14f174510&gt;
-</pre></div></div>
-</div>
-<p>Some data to work with:</p>
+<p>Prepare the data:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!mkdir -p data/pbmc5k_citeseq
-!wget &#39;https://github.com/gtca/h5xx-datasets/blob/main/datasets/minipbcite.h5mu?raw=true&#39; -O data/pbmc5k_citeseq/minipbcite.h5mu
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data = Path(&quot;data&quot;)
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data = Path(&quot;data/pbmc5k_citeseq/&quot;)
-mdata = mudata.read(data / &quot;minipbcite.h5mu&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import mudatasets
+import mudata
+mudata.set_options(pull_on_update=False)
+mdata = mudatasets.load(&quot;pbmc5k_citeseq&quot;, files=[&quot;minipbcite.h5mu&quot;], data_dir=data, backed=False)
 </pre></div>
 </div>
 </div>
-<section id="MuData-Parquet-based-I/O">
-<h2>MuData Parquet-based I/O<a class="headerlink" href="#MuData-Parquet-based-I/O" title="Link to this heading">#</a></h2>
-<p>Saving a <code class="docutils literal notranslate"><span class="pre">MuData</span></code> object on disk:</p>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+■ File minipbcite.h5mu from pbmc5k_citeseq has been found at data/pbmc5k_citeseq/minipbcite.h5mu
+■ Checksum is validated (md5) for minipbcite.h5mu
+■ Loading minipbcite.h5mu...
+</pre></div></div>
+</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mudata_pq = data / &quot;minipbcite.pqdata&quot;
-write_mudata(mdata, mudata_pq)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>file = data / &quot;pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata&quot;
+pqdata.write_mudata(mdata, file)
 </pre></div>
 </div>
 </div>
-<p>Files have to be overwritten explicitly with <code class="docutils literal notranslate"><span class="pre">overwrite=True</span></code>:</p>
-<div class="nbinput nblast docutils container">
+<section id="open()">
+<h2><code class="docutils literal notranslate"><span class="pre">open()</span></code><a class="headerlink" href="#open()" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">open()</span></code> is a simple entry point:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># check that throws FileExistsError as expected
-with pytest.raises(FileExistsError):
-    write_mudata(mdata, mudata_pq)
-
-# overwrite explicitly
-write_mudata(mdata, mudata_pq, overwrite=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = pqdata.open(file)
+f
 </pre></div>
 </div>
 </div>
-<p>The structure is something that resembles <code class="docutils literal notranslate"><span class="pre">.h5mu</span></code> files but with directories instead of HDF5 groups and <code class="docutils literal notranslate"><span class="pre">.parquet</span></code> files instead of HDF5 datasets:</p>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ParquetStorage(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata)
+</pre></div></div>
+</div>
+<blockquote>
+<div><p>Cf. <code class="docutils literal notranslate"><span class="pre">`zarr.open</span></code> &lt;<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open">https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open</a>&gt;`__, <code class="docutils literal notranslate"><span class="pre">`h5py.File</span></code> &lt;<a class="reference external" href="https://docs.h5py.org/en/stable/high/file.html#opening-creating-files">https://docs.h5py.org/en/stable/high/file.html#opening-creating-files</a>&gt;`__</p>
+</div></blockquote>
+<p>“Opening” the file is fast as it doesn’t do much apart from remembering the location it is pointed at:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!tree data/pbmc5k_citeseq/minipbcite.pqdata
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f.path
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-cyan-intense-fg ansi-bold">data/pbmc5k_citeseq/minipbcite.pqdata</span>
-├── <span class="ansi-cyan-intense-fg ansi-bold">mod</span>
-│   ├── <span class="ansi-cyan-intense-fg ansi-bold">prot</span>
-│   │   ├── X.parquet
-│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">layers</span>
-│   │   │   └── counts.parquet
-│   │   ├── obs.parquet
-│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
-│   │   │   ├── X_pca.parquet
-│   │   │   └── X_umap.parquet
-│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
-│   │   │   ├── connectivities.parquet
-│   │   │   └── distances.parquet
-│   │   ├── <span class="ansi-cyan-intense-fg ansi-bold">uns</span>
-│   │   │   └── <span class="ansi-cyan-intense-fg ansi-bold">pca</span>
-│   │   │       ├── variance.parquet
-│   │   │       └── variance_ratio.parquet
-│   │   ├── uns.json
-│   │   ├── var.parquet
-│   │   └── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
-│   │       └── PCs.parquet
-│   └── <span class="ansi-cyan-intense-fg ansi-bold">rna</span>
-│       ├── X.parquet
-│       ├── obs.parquet
-│       ├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
-│       │   ├── X_pca.parquet
-│       │   └── X_umap.parquet
-│       ├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
-│       │   ├── connectivities.parquet
-│       │   └── distances.parquet
-│       ├── <span class="ansi-cyan-intense-fg ansi-bold">uns</span>
-│       │   ├── celltype_colors.parquet
-│       │   ├── leiden_colors.parquet
-│       │   ├── <span class="ansi-cyan-intense-fg ansi-bold">pca</span>
-│       │   │   ├── variance.parquet
-│       │   │   └── variance_ratio.parquet
-│       │   └── <span class="ansi-cyan-intense-fg ansi-bold">rank_genes_groups</span>
-│       │       ├── logfoldchanges.parquet
-│       │       ├── names.parquet
-│       │       ├── pvals.parquet
-│       │       ├── pvals_adj.parquet
-│       │       └── scores.parquet
-│       ├── uns.json
-│       ├── var.parquet
-│       └── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
-│           └── PCs.parquet
-├── obs.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
-│   ├── X_mofa.parquet
-│   ├── X_mofa_umap.parquet
-│   ├── X_umap.parquet
-│   └── X_wnn_umap.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">obsmap</span>
-│   ├── prot.parquet
-│   └── rna.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
-│   ├── connectivities.parquet
-│   ├── distances.parquet
-│   ├── wnn_connectivities.parquet
-│   └── wnn_distances.parquet
-├── pqdata.json
-├── var.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
-│   └── LFs.parquet
-└── <span class="ansi-cyan-intense-fg ansi-bold">varmap</span>
-    ├── prot.parquet
-    └── rna.parquet
-
-21 directories, 46 files
+PosixPath(&#39;data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata&#39;)
 </pre></div></div>
 </div>
-<p>Reading data back is straightforward:</p>
+<p>It returns an object that can be traversed in a straightforward fashion.</p>
+<p>E.g. individual tables can be reached:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mdata_from_pqdata = read_mudata(mudata_pq)
-mdata_from_pqdata
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f[&quot;mod&quot;][&quot;rna&quot;][&quot;X&quot;]
 </pre></div>
 </div>
 </div>
@@ -503,39 +437,17 @@ mdata_from_pqdata
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="output_area rendered_html docutils container">
-<pre>MuData object with n_obs × n_vars = 411 × 56
-  obs:      &#x27;louvain&#x27;, &#x27;leiden&#x27;, &#x27;leiden_wnn&#x27;, &#x27;celltype&#x27;
-  var:      &#x27;feature_types&#x27;, &#x27;gene_ids&#x27;, &#x27;highly_variable&#x27;
-  obsm:     &#x27;X_wnn_umap&#x27;, &#x27;X_umap&#x27;, &#x27;X_mofa_umap&#x27;, &#x27;X_mofa&#x27;
-  varm:     &#x27;LFs&#x27;
-  obsp:     &#x27;connectivities&#x27;, &#x27;distances&#x27;, &#x27;wnn_connectivities&#x27;, &#x27;wnn_distances&#x27;
-  2 modalities
-    prot:   411 x 29
-      var:  &#x27;gene_ids&#x27;, &#x27;feature_types&#x27;, &#x27;highly_variable&#x27;
-      uns:  &#x27;neighbors&#x27;, &#x27;pca&#x27;, &#x27;umap&#x27;
-      obsm: &#x27;X_pca&#x27;, &#x27;X_umap&#x27;
-      varm: &#x27;PCs&#x27;
-      layers:       &#x27;counts&#x27;
-      obsp: &#x27;connectivities&#x27;, &#x27;distances&#x27;
-    rna:    411 x 27
-      obs:  &#x27;n_genes_by_counts&#x27;, &#x27;total_counts&#x27;, &#x27;total_counts_mt&#x27;, &#x27;pct_counts_mt&#x27;, &#x27;leiden&#x27;, &#x27;celltype&#x27;
-      var:  &#x27;gene_ids&#x27;, &#x27;feature_types&#x27;, &#x27;mt&#x27;, &#x27;n_cells_by_counts&#x27;, &#x27;mean_counts&#x27;, &#x27;pct_dropout_by_counts&#x27;, &#x27;total_counts&#x27;, &#x27;highly_variable&#x27;, &#x27;means&#x27;, &#x27;dispersions&#x27;, &#x27;dispersions_norm&#x27;, &#x27;mean&#x27;, &#x27;std&#x27;
-      uns:  &#x27;hvg&#x27;, &#x27;leiden&#x27;, &#x27;neighbors&#x27;, &#x27;pca&#x27;, &#x27;rank_genes_groups&#x27;, &#x27;umap&#x27;, &#x27;celltype_colors&#x27;, &#x27;leiden_colors&#x27;
-      obsm: &#x27;X_pca&#x27;, &#x27;X_umap&#x27;
-      varm: &#x27;PCs&#x27;
-      obsp: &#x27;connectivities&#x27;, &#x27;distances&#x27;</pre></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ParquetArray(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata/mod/rna/X.parquet): shape (411,27), type (NKG7:float, KLRC2:float, GNLY:float, IGHM:float, IRF8:float, CD8B:float, CD79A:float, CD14:float, MS4A7:float, CCL5:float, FCGR3A:float, IL4R:float, IGHD:float, S100A8:float, LYZ:float, CD8A:float, FOXP3:float, IL2RA:float, TCL1A:float, TCF4:float, ITGAM:float, TRAC:float, IL7R:float, CST3:float, ITGB1:float, MS4A1:float, KLF4:float)
+</pre></div></div>
 </div>
-</section>
-<section id="AnnData-Parquet-based-I/O">
-<h2>AnnData Parquet-based I/O<a class="headerlink" href="#AnnData-Parquet-based-I/O" title="Link to this heading">#</a></h2>
-<p>This also works for individual modalities. Let’s try it using the <code class="docutils literal notranslate"><span class="pre">prot</span></code> modality as an example.</p>
+<p>as well as collections:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>adata = mdata[&quot;prot&quot;]
-adata
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>list(f[&quot;mod&quot;][&quot;rna&quot;][&quot;uns&quot;])
 </pre></div>
 </div>
 </div>
@@ -545,45 +457,43 @@ adata
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-AnnData object with n_obs × n_vars = 411 × 29
-    var: &#39;gene_ids&#39;, &#39;feature_types&#39;, &#39;highly_variable&#39;
-    uns: &#39;neighbors&#39;, &#39;pca&#39;, &#39;umap&#39;
-    obsm: &#39;X_pca&#39;, &#39;X_umap&#39;
-    varm: &#39;PCs&#39;
-    layers: &#39;counts&#39;
-    obsp: &#39;connectivities&#39;, &#39;distances&#39;
+[&#39;leiden_colors&#39;,
+ &#39;rank_genes_groups&#39;,
+ &#39;umap&#39;,
+ &#39;leiden&#39;,
+ &#39;neighbors&#39;,
+ &#39;pca&#39;,
+ &#39;celltype_colors&#39;,
+ &#39;hvg&#39;]
 </pre></div></div>
 </div>
-<p>Saving an <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> object on disk:</p>
-<div class="nbinput nblast docutils container">
+<p>Note that simple structures and scalars stored in JSON files are actually read into memory during traversing:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>adata_pq = data / &quot;minipbcite_prot.pqdata&quot;
-write_anndata(adata, adata_pq)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f[&quot;mod&quot;][&quot;rna&quot;][&quot;uns&quot;][&quot;pca&quot;][&quot;params&quot;]
 </pre></div>
 </div>
 </div>
-<p>Files have to be overwritten explicitly with <code class="docutils literal notranslate"><span class="pre">overwrite=True</span></code>:</p>
-<div class="nbinput nblast docutils container">
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;use_highly_variable&#39;: True, &#39;zero_center&#39;: True}
+</pre></div></div>
+</div>
+<p>Lightweight objects store information about the absolute (system path) and relative (to the <code class="docutils literal notranslate"><span class="pre">.pqdata</span></code> file) location of the data:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># check that throws FileExistsError as expected
-with pytest.raises(FileExistsError):
-    write_anndata(adata, adata_pq)
-
-# overwrite explicitly
-write_anndata(adata, adata_pq, overwrite=True)
-</pre></div>
-</div>
-</div>
-<p>The structure is something that resembles <code class="docutils literal notranslate"><span class="pre">.h5ad</span></code> files but with directories instead of HDF5 groups and <code class="docutils literal notranslate"><span class="pre">.pq</span></code> files instead of HDF5 datasets:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!tree data/pbmc5k_citeseq/minipbcite_prot.pqdata
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(&quot;f[&#39;mod&#39;][&#39;rna&#39;][&#39;X&#39;]&quot;)
+print(f&quot;  root: {f[&quot;mod&quot;][&quot;rna&quot;][&quot;X&quot;].root}&quot;)
+print(f&quot;  name: {f[&quot;mod&quot;][&quot;rna&quot;][&quot;X&quot;].name}&quot;)
+print(f&quot;  path: {f[&quot;mod&quot;][&quot;rna&quot;][&quot;X&quot;].path}&quot;)
 </pre></div>
 </div>
 </div>
@@ -592,36 +502,27 @@ write_anndata(adata, adata_pq, overwrite=True)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-cyan-intense-fg ansi-bold">data/pbmc5k_citeseq/minipbcite_prot.pqdata</span>
-├── X.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">layers</span>
-│   └── counts.parquet
-├── obs.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">obsm</span>
-│   ├── X_pca.parquet
-│   └── X_umap.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">obsp</span>
-│   ├── connectivities.parquet
-│   └── distances.parquet
-├── <span class="ansi-cyan-intense-fg ansi-bold">uns</span>
-│   └── <span class="ansi-cyan-intense-fg ansi-bold">pca</span>
-│       ├── variance.parquet
-│       └── variance_ratio.parquet
-├── uns.json
-├── var.parquet
-└── <span class="ansi-cyan-intense-fg ansi-bold">varm</span>
-    └── PCs.parquet
-
-7 directories, 12 files
+f[&#39;mod&#39;][&#39;rna&#39;][&#39;X&#39;]
+  root: /rna
+  name: /rna/X
+  path: data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata/mod/rna/X.parquet
 </pre></div></div>
 </div>
-<p>Reading data back is straightforward:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table = pa.read_table(f[&quot;mod&quot;][&quot;rna&quot;][&quot;obsm&quot;][&quot;X_umap&quot;].path)
+umap_embedding = table.to_pandas().to_numpy()
+</pre></div>
+</div>
+</div>
+<p>Generally, the original type of the object that was used to make the table is stored in <code class="docutils literal notranslate"><span class="pre">.schema.metadata</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>adata_from_pq = read_anndata(adata_pq)
-adata_from_pq
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table.schema.metadata
 </pre></div>
 </div>
 </div>
@@ -631,14 +532,64 @@ adata_from_pq
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-AnnData object with n_obs × n_vars = 411 × 29
-    var: &#39;gene_ids&#39;, &#39;feature_types&#39;, &#39;highly_variable&#39;
-    uns: &#39;neighbors&#39;, &#39;pca&#39;, &#39;umap&#39;
-    obsm: &#39;X_pca&#39;, &#39;X_umap&#39;
-    varm: &#39;PCs&#39;
-    layers: &#39;counts&#39;
-    obsp: &#39;connectivities&#39;, &#39;distances&#39;
+{b&#39;array&#39;: b&#39;{&#34;shape&#34;: [411, 2], &#34;class&#34;: {&#34;module&#34;: &#34;numpy&#34;, &#34;name&#34;: &#34;ndarray&#34;}}&#39;}
 </pre></div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">open()</span></code> can also work on modalities embedded inside multimodal containers:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rna = pqdata.open(f[&quot;mod&quot;][&quot;rna&quot;].path)
+rna
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ParquetStorage(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata/mod/rna)
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table = pa.read_table(rna[&quot;obsm&quot;][&quot;X_umap&quot;].path)
+umap_embedding = table.to_pandas().to_numpy()
+</pre></div>
+</div>
+</div>
+<p>And generally, any part of the hierarchy of the file:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rna_obsm = pqdata.open(rna[&quot;obsm&quot;].path)
+rna_obsm
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ParquetStorage(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata/mod/rna/obsm)
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table = pa.read_table(rna_obsm[&quot;X_umap&quot;].path)
+umap_embedding = table.to_pandas().to_numpy()
+</pre></div>
+</div>
 </div>
 </section>
 </section>
@@ -655,20 +606,20 @@ AnnData object with n_obs × n_vars = 411 × 29
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="index.html"
+       href="pqdata-serialization-intro.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Parquet-based serialisation</p>
       </div>
     </a>
     <a class="right-next"
-       href="pqdata-serialization-intro.html"
+       href="../api.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Parquet-based serialisation</p>
+        <p class="prev-next-title">API</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -688,8 +639,7 @@ AnnData object with n_obs × n_vars = 411 × 29
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#MuData-Parquet-based-I/O">MuData Parquet-based I/O</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#AnnData-Parquet-based-I/O">AnnData Parquet-based I/O</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a></li>
 </ul>
   </nav></div>
 

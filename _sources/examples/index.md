@@ -5,6 +5,7 @@
 
 getting-started-anndata-mudata-parquet-serialization.ipynb
 pqdata-serialization-intro.ipynb
+low-level-interface.ipynb
 ```
 
 ```{contents}
