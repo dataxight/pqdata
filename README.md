@@ -1,3 +1,5 @@
+[![PyPi version](https://img.shields.io/pypi/v/pqdata)](https://pypi.org/project/pqdata)
+
 # pqdata
 
 Experimental Parquet-based I/O for [scverse](https://scverse.org) data structures.
@@ -5,6 +7,8 @@ Experimental Parquet-based I/O for [scverse](https://scverse.org) data structure
 ## Installation
 
 ```
+pip install pqdata
+# or
 pip install git+https://github.com/gtca/pqdata
 ```
 
