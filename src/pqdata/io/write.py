@@ -18,14 +18,14 @@ if TYPE_CHECKING:
     from mudata import MuData
 
 
-def write_table(
-    df, path: str, key: str, colnames=None, compression: str | None = None
-):
+def write_table(df, path: str, key: str, colnames=None, compression: str | None = None):
     table = None
 
     if hasattr(df, "to_parquet"):
+
         def f(x):
             return partial(x.to_parquet)
+
         # if pandas.DataFrame, .pandas_metadata will be available in the schema
     else:
         if colnames is None:
@@ -52,18 +52,23 @@ def write_table(
                     table = pa.table({colnames[j]: column for j, column in enumerate(df.T)})
                 except ArrowInvalid:
                     import numpy as np
-                    table = pa.table({colnames[j]: np.array(column) for j, column in enumerate(df.T)})
-            schema = table.schema.with_metadata({
-                "array": json.dumps(
-                    {
-                        "shape": df.shape,
-                        "class": {
-                            "module": df.__class__.__module__,
-                            "name": df.__class__.__name__,
-                        },
-                    }
-                )
-            })
+
+                    table = pa.table(
+                        {colnames[j]: np.array(column) for j, column in enumerate(df.T)}
+                    )
+            schema = table.schema.with_metadata(
+                {
+                    "array": json.dumps(
+                        {
+                            "shape": df.shape,
+                            "class": {
+                                "module": df.__class__.__module__,
+                                "name": df.__class__.__name__,
+                            },
+                        }
+                    )
+                }
+            )
             table = table.replace_schema_metadata(metadata=schema.metadata)
 
         def f(x):
@@ -92,17 +97,19 @@ def write_sparse(mx, path: str, key: str, compression: str | None = None):
 
     df = pa.table({"row": x.row, "col": x.col, "data": x.data})
 
-    schema = df.schema.with_metadata({
-        "array": json.dumps(
-            {
-                "shape": x.shape,
-                "class": {
-                    "module": mx.__class__.__module__,
-                    "name": mx.__class__.__name__,
-                },
-            }
-        )
-    })
+    schema = df.schema.with_metadata(
+        {
+            "array": json.dumps(
+                {
+                    "shape": x.shape,
+                    "class": {
+                        "module": mx.__class__.__module__,
+                        "name": mx.__class__.__name__,
+                    },
+                }
+            )
+        }
+    )
     df = df.replace_schema_metadata(metadata=schema.metadata)
 
     pq.write_table(df, filepath, compression=compression)
@@ -113,11 +120,7 @@ def return_or_write(d, parentpath, globalpath, compression: str | None = None):
     # from anndata.compat._overloaded_dict import OverloadedDict
 
     # OrderedDict, OverloadedDict -> Dict
-    if (
-        isinstance(d, dict)
-        or isinstance(d, OrderedDict)
-        or type(d).__name__ == "OverloadedDict"
-    ):
+    if isinstance(d, dict) or isinstance(d, OrderedDict) or type(d).__name__ == "OverloadedDict":
         new_d = {}
         for k, v in d.items():
             if hasattr(v, "ndim") and v.ndim == 0:  # numpy scalars
@@ -136,17 +139,19 @@ def return_or_write(d, parentpath, globalpath, compression: str | None = None):
                 names=[parentkey],
             )
 
-            schema = table.schema.with_metadata({
-                "array": json.dumps(
-                    {
-                        "shape": d.shape,
-                        "class": {
-                            "module": d.__class__.__module__,
-                            "name": d.__class__.__name__,
-                        },
-                    }
-                )
-            })
+            schema = table.schema.with_metadata(
+                {
+                    "array": json.dumps(
+                        {
+                            "shape": d.shape,
+                            "class": {
+                                "module": d.__class__.__module__,
+                                "name": d.__class__.__name__,
+                            },
+                        }
+                    )
+                }
+            )
             table = table.replace_schema_metadata(metadata=schema.metadata)
 
         elif d.ndim == 1:  # structured arrays
@@ -164,13 +169,9 @@ def return_or_write(d, parentpath, globalpath, compression: str | None = None):
         return d
 
 
-def write_json_and_maybe_tables(
-    struct: dict, path: str, key: str, compression: str | None = None
-):
+def write_json_and_maybe_tables(struct: dict, path: str, key: str, compression: str | None = None):
 
-    key_simple = return_or_write(
-        struct, "", Path(path) / key, compression=compression
-    )
+    key_simple = return_or_write(struct, "", Path(path) / key, compression=compression)
 
     key_path = f"{Path(path) / key}.json"
 
@@ -241,9 +242,7 @@ def _write_data(
         rawvarnames = data.raw.var_names.values
 
         # raw.var
-        write_table(
-            data.raw.var, rawpath, "var", colnames=rawvarnames, compression=compression
-        )
+        write_table(data.raw.var, rawpath, "var", colnames=rawvarnames, compression=compression)
 
         # raw.obs
         rawobsnames = data.raw.obs_names.values
@@ -275,11 +274,7 @@ def _write_data(
                 Path(subpath).mkdir(parents=True)
                 for item in elem.keys():
                     # Do not serialise 1D arrays from earlier MuData files
-                    if (
-                        key in ["obsm", "varm"]
-                        and hasattr(data, "mod")
-                        and item in data.mod
-                    ):
+                    if key in ["obsm", "varm"] and hasattr(data, "mod") and item in data.mod:
                         continue
                     elem_item = elem[item]
                     colnames = None
@@ -340,9 +335,7 @@ def _write_data(
     # serialisation metadata
     if len(attributes) > 0:
         # write to pqdata.json
-        write_json_and_maybe_tables(
-            attributes, path, "pqdata", compression=compression
-        )
+        write_json_and_maybe_tables(attributes, path, "pqdata", compression=compression)
 
 
 write_anndata = _write_data

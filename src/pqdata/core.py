@@ -16,6 +16,7 @@ class Group:
     HDF5/Zarr-like interface to access directory contents
     stored as parquet and json files.
     """
+
     def __init__(self, path: PathLike, origin: PathLike | None = None):
         self.path = Path(path)
         if not self.path.exists():
@@ -53,18 +54,26 @@ class Group:
             with (self.path / "../pqdata.json").open() as file:
                 attrs = json.load(file)
                 try:
-                    attrs['mod']['mod-order'] = attrs['mod']['order']
+                    attrs["mod"]["mod-order"] = attrs["mod"]["order"]
                 except KeyError:
                     pass
                 return attrs
         else:
             return {}
 
+
 class GroupAccessor(Group):
     """
     Accessor for directory contents
     """
-    def __init__(self, path: PathLike, origin: PathLike | None = None, key: str = "", memo: dict[str, Any] = None):
+
+    def __init__(
+        self,
+        path: PathLike,
+        origin: PathLike | None = None,
+        key: str = "",
+        memo: dict[str, Any] = None,
+    ):
         super().__init__(path, origin)
         self.name = str(Path(self.name) / key)
         self.contents = memo
@@ -188,6 +197,7 @@ class GroupContents(Group):
     """
     Container for contents read from a json file.
     """
+
     def __init__(self, path: PathLike, fileformat: str, key: str = ""):
         super().__init__(path)
         self.name = str(Path(self.name) / key)
@@ -195,12 +205,15 @@ class GroupContents(Group):
 
         if fileformat == "json":
             import json
+
             self.contents = json.load(self.path)
         elif fileformat in ("yaml", "yml"):
             import yaml
+
             self.contents = yaml.load(self.path)
         elif fileformat == "toml":
             import toml
+
             self.contents = toml.load(self.path)
         else:
             raise NotImplementedError(f"File format {fileformat} not supported.")
@@ -217,6 +230,7 @@ class Array:
     HDF5/Zarr-like interface to access a single object
     stored in a parquet or a json file.
     """
+
     def __init__(self, path: PathLike, fileformat: str, root: str = "/", key: str = ""):
         self.path = Path(path)
         self.fileformat = fileformat
@@ -235,7 +249,7 @@ class Array:
 
     def __repr__(self) -> str:
         schema = pq.read_schema(self.path)
-        c_types = ', '.join([f"{c.name}:{c.type}" for c in schema])
+        c_types = ", ".join([f"{c.name}:{c.type}" for c in schema])
         s = f"ParquetArray({self.path}): shape ({','.join(str(e) for e in self.shape)}), type ({c_types})"
         return s
 
@@ -249,8 +263,8 @@ def read_elem(elem: Array):
 
 
 def open_storage(
-        path: PathLike,
-        mode: str = "r",
+    path: PathLike,
+    mode: str = "r",
 ):
     # TODO: modes
     return GroupAccessor(path)

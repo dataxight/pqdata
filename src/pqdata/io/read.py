@@ -1,5 +1,6 @@
 import json
 import os
+from os import PathLike
 from pathlib import Path
 from typing import Any, Literal
 from warnings import warn
@@ -74,9 +75,7 @@ def read_table(path: str, kind: Literal["array", "dataframe", "polars"] = None):
 
 
 def read_sparse(path: str):
-
     table = pq.read_table(path)
-
     is_coo = all([c in table.column_names for c in ["data", "row", "col"]])
     if not is_coo:
         raise NotImplementedError
@@ -84,7 +83,8 @@ def read_sparse(path: str):
     return coo_matrix((table["data"], (table["row"], table["col"])))
 
 
-def put_into_dict(d: dict, key: str, v: Any):
+def put_into_dict(d: dict, key: str | PathLike, v: Any):
+    key = str(key)  # PosixPath -> str
     key_levels = os.path.normpath(key).split(os.path.sep)
     dict_loc = d
     for level in key_levels[:-1]:
@@ -96,16 +96,12 @@ def put_into_dict(d: dict, key: str, v: Any):
     return
 
 
-def read_tables_add_to_dict(path: str, d: dict):
-
+def read_tables_add_to_dict(path: PathLike, d: dict):
     for root, dirs, files in os.walk(path):
         for file in files:
             file_path = Path(root) / file
-            table_loc = Path(file_path[len(path) :].strip(os.path.sep)).with_suffix('')
-
+            table_loc = file_path.relative_to(path).with_suffix("")
             table = read_table(file_path)
-
-            # table_loc = str.removeprefix(file_path, path)
             put_into_dict(d, table_loc, table)
 
     return
@@ -149,9 +145,8 @@ def _read_data(path: str):
         if Path(elem_path).exists():
             data_dict[key] = {}
             for file in os.listdir(elem_path):
-                item_name = Path(file).with_suffix('')
+                item_name = str(Path(file).with_suffix(""))
                 item_path = Path(elem_path) / file
-                # TODO: use metadata for that
                 data_dict[key][item_name] = read_table(item_path)
     # uns
     uns_json_path = Path(path) / "uns.json"
@@ -179,9 +174,7 @@ def _read_data(path: str):
         if "order" in mod_dict:
             mod_order = mod_dict["order"]
             if all([m in mod_order for m in modalities]):
-                data_dict["mod"] = {
-                    m: data_dict["mod"][m] for m in mod_order if m in modalities
-                }
+                data_dict["mod"] = {m: data_dict["mod"][m] for m in mod_order if m in modalities}
 
         if "axis" in mod_dict:
             data_dict["axis"] = mod_dict["axis"]
