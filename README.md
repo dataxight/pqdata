@@ -42,3 +42,12 @@ from pqdata import read_anndata, read_mudata
 adata = read_anndata("pbmc3k_anndata.pqdata")
 mdata = read_mudata("pbmc5k_citeseq_mudata.pqdata")
 ```
+
+Lower-level I/O:
+
+```py
+import pqdata
+from pqdata.core import read_elem
+f = pqdata.open("pbmc5k_citeseq_mudata.pqdata")
+x = read_elem(f["mod"]["rna"]["obsm"]["X_pca"])
+```
