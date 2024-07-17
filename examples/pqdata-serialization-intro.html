@@ -319,6 +319,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Reading">Reading</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#File-reading-speed">File reading speed</a></li>
 </ul>
             </nav>
         </div>
@@ -355,7 +356,7 @@ mudata.set_options(pull_on_update=False)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;mudata._core.config.set_options at 0x176ac9ad0&gt;
+&lt;mudata._core.config.set_options at 0x35f684a40&gt;
 </pre></div></div>
 </div>
 <section id="Parquet-based-serialisation">
@@ -474,7 +475,7 @@ except FileExistsError as e:
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! du -sh data/pbmc5k_citeseq/minipbcite.h5mu
@@ -491,7 +492,7 @@ except FileExistsError as e:
 </div>
 <p>On larger datasets, the difference will be more noticeable. Moreoever, <a class="reference external" href="https://arrow.apache.org/docs/python/parquet.html#compression-encoding-and-file-compatibility">other compression strategies</a> can be used to get even smaller files:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>file = data / &quot;pbmc5k_citeseq/pbmc5k_citeseq_mudata_zstd.pqdata&quot;
@@ -499,13 +500,38 @@ write_mudata(mdata, file, compression=&quot;zstd&quot;)
 </pre></div>
 </div>
 </div>
+<p>Sometimes it’s easier to share the data as a single file, and archiving and compression will make the volume even smaller:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! tar -czf minipbcite.tar.gz data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! du -sh minipbcite.tar.gz
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+7.9M    minipbcite.tar.gz
+</pre></div></div>
+</div>
 </section>
 </section>
 <section id=".pqdata-structure">
 <h2><em>.pqdata</em> structure<a class="headerlink" href="#.pqdata-structure" title="Link to this heading">#</a></h2>
 <p>We can see how the dataset is stored on disc:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>! tree data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata
@@ -593,7 +619,7 @@ write_mudata(mdata, file, compression=&quot;zstd&quot;)
 <p>High-dimensional objects that were NumPy arrays or pandas DataFrames in memory are now stored in individual Parquet files.</p>
 <p>Moreover, serialising these objects largely relies on <code class="docutils literal notranslate"><span class="pre">pyarrow</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obs.parquet&quot;).to_pandas().head()
@@ -601,7 +627,7 @@ write_mudata(mdata, file, compression=&quot;zstd&quot;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -671,7 +697,7 @@ write_mudata(mdata, file, compression=&quot;zstd&quot;)
 </div>
 <p>Embeddings, e.g. UMAP:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obsm/X_umap.parquet&quot;)
@@ -679,7 +705,7 @@ write_mudata(mdata, file, compression=&quot;zstd&quot;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -693,7 +719,7 @@ pyarrow.Table
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;obsm/X_umap.parquet&quot;).to_pandas().to_numpy()[:10]
@@ -701,7 +727,7 @@ pyarrow.Table
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -720,7 +746,7 @@ array([[ 9.66083  ,  5.779709 ],
 </div>
 <p>Dense count matrix with normalised values, which contains protein names (<code class="docutils literal notranslate"><span class="pre">.mod['prot'].var_names</span></code>) as column names:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;mod/prot/X.parquet&quot;).to_pandas().tail()
@@ -728,7 +754,7 @@ array([[ 9.66083  ,  5.779709 ],
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -901,7 +927,7 @@ array([[ 9.66083  ,  5.779709 ],
 </div>
 <p>Sparse count matrix with counts are stored in the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.html">COO format</a>:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pq.read_table(file / &quot;mod/prot/layers/counts.parquet&quot;).to_pandas().tail()
@@ -909,7 +935,7 @@ array([[ 9.66083  ,  5.779709 ],
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -973,7 +999,7 @@ array([[ 9.66083  ,  5.779709 ],
 </div>
 <p>For example, we can count proteins with a simple SQL query:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import duckdb
@@ -985,7 +1011,7 @@ duckdb.query(f&#39;&#39;&#39;
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1001,7 +1027,7 @@ duckdb.query(f&#39;&#39;&#39;
 <h3>JSON files<a class="headerlink" href="#JSON-files" title="Link to this heading">#</a></h3>
 <p>Simpler objects such as scalar values are serialised into <a class="reference external" href="https://www.json.org/json-en.html">JSON files</a>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>with open(file / &quot;mod/rna/uns.json&quot;) as uns_file:
@@ -1068,7 +1094,7 @@ duckdb.query(f&#39;&#39;&#39;
 <h2>Reading<a class="headerlink" href="#Reading" title="Link to this heading">#</a></h2>
 <p>AnnData reader will return an in-memory AnnData object, and MuData reader will return an in-memory MuData object:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>read_mudata(file)
@@ -1076,7 +1102,7 @@ duckdb.query(f&#39;&#39;&#39;
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1102,6 +1128,53 @@ duckdb.query(f&#39;&#39;&#39;
       varm: &#x27;PCs&#x27;
       obsp: &#x27;connectivities&#x27;, &#x27;distances&#x27;</pre></div>
 </div>
+</section>
+<section id="File-reading-speed">
+<h2>File reading speed<a class="headerlink" href="#File-reading-speed" title="Link to this heading">#</a></h2>
+<p>Read speads are not compromised and are actually improved:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import mudata
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%%timeit
+mudata.read(&quot;data/pbmc5k_citeseq/minipbcite.h5mu&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+93.9 ms ± 5.8 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%%timeit
+read_mudata(file)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+45.2 ms ± 1.12 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+</pre></div></div>
+</div>
+<hr class="docutils" />
 <p>Together, these methods in <code class="docutils literal notranslate"><span class="pre">pqdata</span></code> make the Parquet-based serialisation compatible with the whole <a class="reference external" href="https://scverse.org/">scverse ecosystem</a> while also providing benefits for out-of-memory analytics on large datasets.</p>
 </section>
 </section>
@@ -1161,6 +1234,7 @@ duckdb.query(f&#39;&#39;&#39;
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Reading">Reading</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#File-reading-speed">File reading speed</a></li>
 </ul>
   </nav></div>
 

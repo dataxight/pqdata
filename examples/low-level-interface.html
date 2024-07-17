@@ -309,7 +309,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#read_elem()"><code class="docutils literal notranslate"><span class="pre">read_elem()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -329,7 +332,8 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
+from pathlib import Path
 from pyarrow import parquet as pa
 </pre></div>
 </div>
@@ -457,14 +461,14 @@ ParquetArray(data/pbmc5k_citeseq/pbmc5k_citeseq_mudata.pqdata/mod/rna/X.parquet)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&#39;leiden_colors&#39;,
- &#39;rank_genes_groups&#39;,
- &#39;umap&#39;,
+[&#39;umap&#39;,
  &#39;leiden&#39;,
- &#39;neighbors&#39;,
- &#39;pca&#39;,
  &#39;celltype_colors&#39;,
- &#39;hvg&#39;]
+ &#39;leiden_colors&#39;,
+ &#39;pca&#39;,
+ &#39;neighbors&#39;,
+ &#39;hvg&#39;,
+ &#39;rank_genes_groups&#39;]
 </pre></div></div>
 </div>
 <p>Note that simple structures and scalars stored in JSON files are actually read into memory during traversing:</p>
@@ -591,6 +595,31 @@ umap_embedding = table.to_pandas().to_numpy()
 </pre></div>
 </div>
 </div>
+<section id="read_elem()">
+<h3><code class="docutils literal notranslate"><span class="pre">read_elem()</span></code><a class="headerlink" href="#read_elem()" title="Link to this heading">#</a></h3>
+<p>Libraries like <code class="docutils literal notranslate"><span class="pre">anndata</span></code> store custom encoding types with the schema defined by the specification and provide the <code class="docutils literal notranslate"><span class="pre">`read_elem()</span></code> &lt;<a class="reference external" href="https://anndata.readthedocs.io/en/latest/generated/anndata.experimental.read_elem.html">https://anndata.readthedocs.io/en/latest/generated/anndata.experimental.read_elem.html</a>&gt;`__ interface to access individual objects like arrays, matrices, tables, etc.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">pqdata</span></code>, objects like that are stored as tables in Parquet files*, and the original object class is preserved in metadata. This way there’s no need to define custom encoding types and schemas as this is handled by Parquet files.</p>
+<blockquote>
+<div><p>* simpler entities like scalars are stored in JSON files)</p>
+</div></blockquote>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pqdata.core import read_elem
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rna_umap = read_elem(rna_obsm[&quot;X_umap&quot;])
+assert np.array_equal(umap_embedding, rna_umap)
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 </section>
 
@@ -639,7 +668,10 @@ umap_embedding = table.to_pandas().to_numpy()
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#open()"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#read_elem()"><code class="docutils literal notranslate"><span class="pre">read_elem()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
