@@ -1,14 +1,11 @@
-import pytest
-
-from pqdata.io.read import read_anndata, read_mudata
-from pqdata.io.write import write_anndata, write_mudata
-
-from scipy.sparse import coo_matrix
 import numpy as np
-import pandas as pd
-import pyarrow as pa
+import pytest
 from anndata import AnnData
 from mudata import MuData
+from scipy.sparse import coo_matrix
+
+from pqdata.io.read import read_mudata
+from pqdata.io.write import write_mudata
 
 
 @pytest.fixture()
