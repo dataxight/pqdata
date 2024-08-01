@@ -4,6 +4,9 @@ from os import PathLike
 from pathlib import Path
 from typing import Any
 
+import fsspec
+from fsspec.mapping import FSMap
+from fsspec.spec import AbstractFileSystem
 from pyarrow import parquet as pq
 
 from .io.read import read_table
@@ -17,9 +20,19 @@ class Group:
     stored as parquet and json files.
     """
 
-    def __init__(self, path: PathLike, origin: PathLike | None = None):
-        self.path = Path(path)
-        if not self.path.exists():
+    def __init__(self, path: PathLike | FSMap, origin: PathLike | None = None, fs: AbstractFileSystem | None = None):
+        if fs is not None:
+            self.fs = fs
+            self.path = Path(path)
+        else:
+            if isinstance(path, FSMap):
+                self.fs = path.fs
+                self.path = Path(path.root)
+            else:
+                self.fs = fsspec.filesystem("file")
+                self.path = Path(path)
+    
+        if not self.fs.exists(self.path):
             raise FileNotFoundError(f"Path {self.path} does not exist.")
 
         if origin is None:
@@ -51,7 +64,7 @@ class Group:
     @property
     def attrs(self):
         if self.name.endswith("mod"):
-            with (self.path / "../pqdata.json").open() as file:
+            with self.fs.open(self.path.parent / "pqdata.json") as file:
                 attrs = json.load(file)
                 try:
                     attrs["mod"]["mod-order"] = attrs["mod"]["order"]
@@ -73,14 +86,15 @@ class GroupAccessor(Group):
         origin: PathLike | None = None,
         key: str = "",
         memo: dict[str, Any] = None,
+        fs: AbstractFileSystem | None = None,
     ):
-        super().__init__(path, origin)
+        super().__init__(path, origin, fs)
         self.name = str(Path(self.name) / key)
         self.contents = memo
 
     def __getitem__(self, key: str):
         if key == "/":
-            return GroupAccessor(self.og, self.og, key="/")
+            return GroupAccessor(self.og, self.og, key="/", fs=self.fs)
 
         filepath: PathLike
         fileformat: str | None = None
@@ -95,19 +109,20 @@ class GroupAccessor(Group):
             memo = {}
         # is there more data?
         for suffix in "json", "yaml", "yml", "toml":
-            if (textfile := self.path / f"{key}.{suffix}").exists():
+            if self.fs.exists(textfile := self.path / f"{key}.{suffix}"):
+                # FIXME
                 memo |= read_textfile(textfile)
                 fileformat = suffix
 
         # directory?
         filepath = self.path / key
-        if filepath.exists():
-            return GroupAccessor(filepath, self.og, key=key, memo=memo)
+        if self.fs.exists(filepath):
+            return GroupAccessor(filepath, self.og, key=key, memo=memo, fs=self.fs)
 
         # file?
         for suffix in ("pq", "parquet"):
             filepath = self.path / f"{key}.{suffix}"
-            if filepath.exists():
+            if self.fs.exists(filepath):
                 fileformat = suffix
                 break
 
@@ -121,21 +136,22 @@ class GroupAccessor(Group):
         if fileformat is None:
             raise KeyError(f"Key {key} not found in {self.path}")
         elif fileformat in ("parquet", "pq"):
-            return Array(filepath, fileformat, root=self.name, key=key)
+            return Array(filepath, fileformat, root=self.name, key=key, fs=self.fs)
         else:
-            return GroupContents(filepath, fileformat, key=key)
+            return GroupContents(filepath, fileformat, key=key, fs=self.fs)
 
     def __repr__(self):
         return f"ParquetStorage({self.path})"
 
     def __len__(self):
-        return len(os.listdir(self.path))
+        return len(self.fs.listdir(self.path, detail=False))
 
     def has_key(self, k):
         return self.__contains__(k)
 
     def keys(self):
-        os_keys = os.listdir(self.path)
+        os_keys = self.fs.listdir(self.path, detail=False)
+        os_keys = [Path(key).stem for key in os_keys]
         memo_keys = list(self.contents.keys()) if self.contents else []
         all_keys = set(os_keys) | set(memo_keys)
 
@@ -231,24 +247,30 @@ class Array:
     stored in a parquet or a json file.
     """
 
-    def __init__(self, path: PathLike, fileformat: str, root: str = "/", key: str = ""):
+    def __init__(self, path: PathLike, fileformat: str, root: str = "/", key: str = "", fs: AbstractFileSystem | None = None):
         self.path = Path(path)
         self.fileformat = fileformat
         self.root = root
         self.name = str(Path(root) / key)
-        if not self.path.exists():
+        self.fs = fs
+
+        if not self.fs.exists(self.path):
             raise FileNotFoundError(f"Path {self.path} does not exist.")
 
-        meta = pq.read_metadata(self.path)
+        with self.fs.open(self.path) as file:
+            meta = pq.read_metadata(file)
         r, c = meta.num_rows, meta.num_columns
         self.shape = (r, c)
         # FIXME: not true for sparse matrices
 
-    def __getitem__(self, key: str):
-        raise NotImplementedError("PqArray does not support __getitem__.")
+    def __getitem__(self, key: Any):
+        with self.fs.open(self.path) as file:
+            table = pq.read_table(file)
+        return table.__getitem__(key)
 
     def __repr__(self) -> str:
-        schema = pq.read_schema(self.path)
+        with self.fs.open(self.path) as file:
+            schema = pq.read_schema(file)
         c_types = ", ".join([f"{c.name}:{c.type}" for c in schema])
         s = f"ParquetArray({self.path}): shape ({','.join(str(e) for e in self.shape)}), type ({c_types})"
         return s
@@ -259,7 +281,9 @@ class Array:
 
 
 def read_elem(elem: Array):
-    return read_table(elem.path)
+    with elem.fs.open(elem.path) as file:
+        table = read_table(file)
+    return table
 
 
 def open_storage(
