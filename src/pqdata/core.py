@@ -19,7 +19,12 @@ class Group:
     stored as parquet and json files.
     """
 
-    def __init__(self, path: PathLike | FSMap, origin: PathLike | None = None, fs: AbstractFileSystem | None = None):
+    def __init__(
+        self,
+        path: PathLike | FSMap,
+        origin: PathLike | None = None,
+        fs: AbstractFileSystem | None = None,
+    ):
         if fs is not None:
             self.fs = fs
             self.path = Path(path)
@@ -246,7 +251,14 @@ class Array:
     stored in a parquet or a json file.
     """
 
-    def __init__(self, path: PathLike, fileformat: str, root: str = "/", key: str = "", fs: AbstractFileSystem | None = None):
+    def __init__(
+        self,
+        path: PathLike,
+        fileformat: str,
+        root: str = "/",
+        key: str = "",
+        fs: AbstractFileSystem | None = None,
+    ):
         self.path = Path(path)
         self.fileformat = fileformat
         self.root = root
@@ -279,9 +291,9 @@ class Array:
         return ()
 
 
-def read_elem(elem: Array):
+def read_elem(elem: Array, **kwargs):
     with elem.fs.open(elem.path) as file:
-        table = read_table(file)
+        table = read_table(file, **kwargs)
     return table
 
 

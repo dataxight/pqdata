@@ -9,7 +9,7 @@ from pyarrow import parquet as pq
 from scipy.sparse import coo_matrix
 
 
-def read_table(path: str, kind: Literal["array", "dataframe", "polars"] = None):
+def read_table(path: str, kind: Literal["array", "dataframe", "polars", "pyarrow"] = None):
 
     table = pq.read_table(path)
     table_meta = table.schema.metadata
@@ -23,8 +23,11 @@ def read_table(path: str, kind: Literal["array", "dataframe", "polars"] = None):
             kind = "dataframe"
 
     if kind == "dataframe":
-        # TODO: dataframe backends (Polars)
         return table.to_pandas()
+    elif kind == "polars":
+        import polars as pl
+
+        return pl.from_arrow(table)
     elif kind == "array":
         # TODO: array backends (JAX)
         is_coo = all([c in table.column_names for c in ["data", "row", "col"]])
