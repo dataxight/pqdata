@@ -1,5 +1,4 @@
 import json
-import os
 from os import PathLike
 from pathlib import Path
 from typing import Any
@@ -31,7 +30,7 @@ class Group:
             else:
                 self.fs = fsspec.filesystem("file")
                 self.path = Path(path)
-    
+
         if not self.fs.exists(self.path):
             raise FileNotFoundError(f"Path {self.path} does not exist.")
 
