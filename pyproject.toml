@@ -26,6 +26,7 @@ dependencies = [
     "pandas",
     "pyarrow",
     "scipy",
+    "fsspec",
 ]
 dynamic = ["version"]
 
