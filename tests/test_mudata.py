@@ -8,6 +8,11 @@ from pqdata.io.read import read_mudata
 from pqdata.io.write import write_mudata
 
 
+import mudata
+
+mudata.set_options(pull_on_update=False)
+
+
 @pytest.fixture()
 def mdata(sparse_x: bool = False):
     np.random.seed(100)
@@ -22,6 +27,10 @@ def mdata(sparse_x: bool = False):
         x = np.random.normal(size=(50, 20))
     ad = AnnData(X=x)
     ad2 = AnnData(X=x[:20, :10].copy())
+
+    ad.var_names = [f"mod1_var{e}" for e in range(ad.n_vars)]
+    ad2.var_names = [f"mod2_var{e}" for e in range(ad2.n_vars)]
+
     md = MuData({"mod1": ad, "mod2": ad2})
     md.var_names_make_unique()
     return md
