@@ -11,12 +11,36 @@ from typing import TYPE_CHECKING, Any
 import pyarrow as pa
 from pyarrow import ArrowInvalid
 from pyarrow import parquet as pq
-from scipy.sparse import coo_matrix, issparse
+from scipy.sparse import coo_matrix
 
 if TYPE_CHECKING:
     from anndata import AnnData
     from mudata import MuData
 
+import anndata
+
+def issparse(x):
+
+    if is_sparse_anndata(x):
+        return True
+
+    if is_sparse_scipy(x):
+        return True
+
+    return False
+
+def is_sparse_anndata(x):
+    if isinstance(x, anndata.abc.CSRDataset):
+        return True
+    if isinstance(x, anndata.abc.CSCDataset):
+        return True
+    return False
+
+def is_sparse_scipy(x):
+    if scipy.sparse.issparse(x):
+        return True
+    return False
+    
 
 def write_table(df, path: str, key: str, colnames=None, compression: str | None = None):
     table = None
@@ -190,7 +214,7 @@ def _write_data(
 
     if Path(path).exists() and overwrite:
         shutil.rmtree(path)
-    Path(path).mkdir()
+    Path(path).mkdir(parents=True)
 
     attributes: dict[str, Any] = {}
 
@@ -210,7 +234,14 @@ def _write_data(
 
     # X (AnnData)
     if hasattr(data, "X") and data.X is not None:
-        if issparse(data.X):
+        if is_sparse_anndata(data.X):
+            # do something here?
+            output_dir = Path(path) / f"X"
+            import protoxight_scrna
+            protoxight_scrna.anndata.convert_x_to_parquet(
+                data, output_dir, prefix='part_', batch_size=25000, batch_limit=3)
+            pass
+        elif is_sparse_scipy(data.X):
             write_sparse(data.X, path, "X", compression=compression)
         else:
             write_table(
