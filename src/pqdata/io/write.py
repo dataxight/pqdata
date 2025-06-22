@@ -235,11 +235,10 @@ def _write_data(
     # X (AnnData)
     if hasattr(data, "X") and data.X is not None:
         if is_sparse_anndata(data.X):
-            # do something here?
             output_dir = Path(path) / f"X"
             import protoxight_scrna
             protoxight_scrna.anndata.convert_x_to_parquet(
-                data, output_dir, prefix='part_', batch_size=25000, batch_limit=3)
+                data, output_dir, prefix='part_', batch_size=25000)
             pass
         elif is_sparse_scipy(data.X):
             write_sparse(data.X, path, "X", compression=compression)
