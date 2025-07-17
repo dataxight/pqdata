@@ -236,20 +236,16 @@ def _write_data(
     if hasattr(data, "X") and data.X is not None:
         if is_sparse_anndata(data.X):
 
-            prefix = "part_"
-            batch_size = kwargs.get("batch size", 25000)
-            
-            ray_info = kwargs.get("ray", None)
-            import protoxight_scrna
-            if ray_info is None:
+            should_skip = kwargs.get("skip_X", False)
+            if not should_skip:
                 output_dir = Path(path) / f"X"
-                protoxight_scrna.anndata.convert_x_to_parquet(
-                    data, output_dir, prefix=prefix, batch_size=batch_size)
-            else:
-                input_url = kwargs["input url"]
-                output_url = kwargs["output dir url"]
-                protoxight_scrna.anndata.convert_x_to_parquet_using_ray(ray_info,
-                    input_url, f"{output_url}/X", prefix=prefix, batch_size=batch_size)
+                prefix = kwargs.get("prefix", "part_")
+                batch_size = kwargs.get("batch_size", 25000)
+                batch_limit = kwargs.get("batch_limit", None)
+                import protoxight_scrna.anndata as pxad
+                pxad.convert_x_to_parquet(
+                    data, output_dir, prefix=prefix, batch_size=batch_size, batch_limit=batch_limit)
+                
             pass
         elif is_sparse_scipy(data.X):
             write_sparse(data.X, path, "X", compression=compression)

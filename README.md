@@ -7,6 +7,14 @@ Experimental Parquet-based I/O for [scverse](https://scverse.org) data structure
 > [!WARNING]
 > This package is experimental, and API can change between versions as well as the file structure.
 
+
+## License
+
+This repo is covered under 2 licenses.
+- The original code was written by Danila Bredikhin in 2024 and is under the BSD 3-clause license.
+- DataXight forked the original repository and subsequent changes are made under the Apache 2.0 license.
+
+
 ## Installation
 
 ```
