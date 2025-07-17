@@ -214,7 +214,7 @@ def _write_data(
 
     if Path(path).exists() and overwrite:
         shutil.rmtree(path)
-    Path(path).mkdir(parents=True)
+    Path(path).mkdir(parents=True, exist_ok=overwrite)
 
     attributes: dict[str, Any] = {}
 
